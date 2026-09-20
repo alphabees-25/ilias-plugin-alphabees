@@ -1,0 +1,8 @@
+// AlphaLearn Tutor Sync — language variables (English)
+needs_companion#:#The "AlphabeesTutor" plugin must be activated and connected first. Without it there is no connection for these runs to serve.
+job_pull_title#:#AlphaLearn: fetch placements
+job_pull_desc#:#Fetches the agent placements set in the portal and the widget key. Without this run the widget appears in no course.
+job_push_title#:#AlphaLearn: send courses and members
+job_push_desc#:#Sends course structure, memberships and learning progress of placed courses to AlphaLearn. Placed courses only, not the whole repository.
+job_drain_title#:#AlphaLearn: drain queue
+job_drain_desc#:#Retries batches that did not get through, with growing delay, and reports the plugin's state while doing so.

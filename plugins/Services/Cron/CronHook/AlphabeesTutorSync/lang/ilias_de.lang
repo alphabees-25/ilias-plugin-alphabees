@@ -1,0 +1,8 @@
+// AlphaLearn Tutor Sync — Sprachvariablen (Deutsch)
+needs_companion#:#Das Plugin "AlphabeesTutor" muss zuerst aktiviert und verbunden sein. Ohne es gibt es keine Verbindung, die diese Laeufe bedienen koennten.
+job_pull_title#:#AlphaLearn: Zuordnungen holen
+job_pull_desc#:#Holt die im Portal gesetzten Agent-Zuordnungen und den Widget-Schluessel. Ohne diesen Lauf erscheint das Widget in keinem Kurs.
+job_push_title#:#AlphaLearn: Kurse und Mitglieder senden
+job_push_desc#:#Sendet Kursstruktur, Mitgliedschaften und Lernstand der zugeordneten Kurse an AlphaLearn. Nur zugeordnete Kurse, nicht das ganze Repository.
+job_drain_title#:#AlphaLearn: Warteschlange abarbeiten
+job_drain_desc#:#Sendet liegengebliebene Stapel erneut, mit wachsendem Abstand, und meldet dabei den Zustand des Plugins.

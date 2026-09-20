@@ -1,0 +1,30 @@
+// AlphaLearn Tutor — Sprachvariablen (Deutsch)
+// Format: schluessel#:#Text. Das Praefix setzt ILIAS selbst davor.
+cfg_pair_title#:#Mit AlphaLearn verbinden
+cfg_connected_title#:#Verbunden mit AlphaLearn
+cfg_backend_url#:#AlphaLearn-Adresse
+cfg_backend_url_info#:#Vorgabe beibehalten, sofern Ihr Anbieter nichts anderes nennt.
+cfg_loader_url#:#Widget-Adresse
+cfg_loader_url_info#:#Vorgabe beibehalten, sofern Ihr Anbieter nichts anderes nennt.
+cfg_token#:#Verbindungscode
+cfg_token_info#:#Im AlphaLearn-Portal unter Integrationen erzeugen. Gilt einmal und 24 Stunden.
+cfg_pair#:#Verbinden
+cfg_pair_ok#:#Verbunden. Die Agenten werden ab jetzt im Hintergrund abgeglichen.
+cfg_pair_failed#:#Verbindung fehlgeschlagen:
+cfg_refresh#:#Jetzt aktualisieren
+cfg_refresh_ok#:#Aktualisiert. %s Zuordnung(en) aktiv.
+cfg_disconnect#:#Verbindung trennen
+cfg_disconnect_ok#:#Verbindung getrennt. Die Zuordnungen bleiben erhalten und kehren beim erneuten Verbinden zurueck.
+cfg_status_site#:#Installationskennung
+cfg_status_registration#:#Verbindung
+cfg_status_placements#:#Zuordnungen
+cfg_status_updated#:#Zuletzt aktualisiert
+cfg_status_queue#:#Warteschlange
+cfg_status_stuck#:#steckengeblieben
+cfg_status_error#:#Letzter Fehler
+job_pull_title#:#AlphaLearn: Zuordnungen holen
+job_pull_desc#:#Holt die im Portal gesetzten Agent-Zuordnungen und den Widget-Schluessel. Ohne diesen Lauf erscheint das Widget in keinem Kurs.
+job_push_title#:#AlphaLearn: Kurse und Mitglieder senden
+job_push_desc#:#Sendet Kursstruktur, Mitgliedschaften und Lernstand der zugeordneten Kurse an AlphaLearn.
+job_drain_title#:#AlphaLearn: Warteschlange abarbeiten
+job_drain_desc#:#Sendet liegengebliebene Stapel erneut, mit wachsendem Abstand.

@@ -1,0 +1,30 @@
+// AlphaLearn Tutor — language variables (English)
+// Format: key#:#text. ILIAS prepends the prefix itself.
+cfg_pair_title#:#Connect to AlphaLearn
+cfg_connected_title#:#Connected to AlphaLearn
+cfg_backend_url#:#AlphaLearn address
+cfg_backend_url_info#:#Keep the default unless your provider says otherwise.
+cfg_loader_url#:#Widget address
+cfg_loader_url_info#:#Keep the default unless your provider says otherwise.
+cfg_token#:#Connection code
+cfg_token_info#:#Create it in the AlphaLearn portal under Integrations. Valid once, for 24 hours.
+cfg_pair#:#Connect
+cfg_pair_ok#:#Connected. Agents are synchronised in the background from now on.
+cfg_pair_failed#:#Connection failed:
+cfg_refresh#:#Refresh now
+cfg_refresh_ok#:#Refreshed. %s placement(s) active.
+cfg_disconnect#:#Disconnect
+cfg_disconnect_ok#:#Disconnected. Placements are kept and return when you connect again.
+cfg_status_site#:#Installation identifier
+cfg_status_registration#:#Connection
+cfg_status_placements#:#Placements
+cfg_status_updated#:#Last refreshed
+cfg_status_queue#:#Queue
+cfg_status_stuck#:#stuck
+cfg_status_error#:#Last error
+job_pull_title#:#AlphaLearn: fetch placements
+job_pull_desc#:#Fetches the agent placements set in the portal and the widget key. Without this run the widget appears in no course.
+job_push_title#:#AlphaLearn: send courses and members
+job_push_desc#:#Sends course structure, memberships and learning progress of placed courses to AlphaLearn.
+job_drain_title#:#AlphaLearn: drain queue
+job_drain_desc#:#Retries batches that did not get through, with growing delay.
