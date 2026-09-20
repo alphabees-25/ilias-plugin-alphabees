@@ -18,11 +18,23 @@ use Throwable;
 /**
  * Sends repository structure, memberships and learning progress.
  *
- * SCOPE. Only placed courses and what hangs below them. The job runs without
- * a logged-in user and therefore with system privileges — that is exactly why
- * the scope has to come from somewhere other than permissions. It mirrors the
- * backend's `ilias_auto_sync_mode = 'placements'`: a university with eight
- * thousand courses ships the three that have an agent.
+ * SCOPE, in two layers.
+ *
+ * The courses and groups themselves always travel, all of them, without their
+ * contents. The portal needs that list to offer a course to place an agent on
+ * — and if only placed courses were sent, a fresh installation would send
+ * nothing, the list would stay empty, and no first placement could ever be
+ * made from it. Shallow, so it stays cheap: one row per course, no files, no
+ * lessons.
+ *
+ * Everything BELOW a container travels only for placed ones. That is where
+ * the volume is, and it mirrors the backend's
+ * `ilias_auto_sync_mode = 'placements'`: a university with eight thousand
+ * courses ships the contents of the three that have an agent.
+ *
+ * The job runs without a logged-in user and therefore with system privileges,
+ * which is exactly why the scope has to be drawn here rather than left to
+ * permissions.
  *
  * PAGING. A large installation does not fit in one cron slot, and a job that
  * runs past its limit is killed without a word. Every run does one page,
@@ -38,6 +50,9 @@ final class StructurePushJob extends BaseJob
 {
     private const CURSOR = 'structure_push';
     private const PAGE_SIZE = 500;
+
+    /** Was eine Platzierung tragen kann — und damit der Katalog. */
+    private const CONTAINER_TYPES = ['crs', 'grp'];
 
     public function getId(): string
     {
@@ -73,13 +88,12 @@ final class StructurePushJob extends BaseJob
         $db = $this->db();
         $placements = new Placements($db);
         $refIds = $placements->refIds();
-        if ($refIds === []) {
-            return $this->nothing('No placed course to report on.');
-        }
 
+        // Kein `return` bei leerer Liste: ohne Platzierung ist der Katalog das
+        // Einzige, was zu senden ist — und ohne ihn kaeme nie eine zustande.
         $objects = $this->collectObjects($refIds);
         if ($objects === []) {
-            return $this->nothing('Placed courses are not in the repository tree.');
+            return $this->nothing('No course or group in this ILIAS.');
         }
 
         $cursor = new Cursor($db);
@@ -124,7 +138,9 @@ final class StructurePushJob extends BaseJob
 
         if ($isLast) {
             $cursor->clear(self::CURSOR);
-            $members = $this->pushMembers($refIds, $state['batch_id']);
+            $members = $refIds === []
+                ? 'no placement yet, so no participants'
+                : $this->pushMembers($refIds, $state['batch_id']);
 
             return $this->ok(sprintf(
                 '%d object(s) in %d page(s) sent, %s.',
@@ -153,16 +169,16 @@ final class StructurePushJob extends BaseJob
     }
 
     /**
-     * Placed containers and everything below them, flattened.
+     * Der Katalog aller Kurse und Gruppen, dazu die Tiefe der platzierten.
      *
-     * Categories and folders travel too: they carry the path an administrator
-     * uses to tell two identically named courses apart, and a later course
-     * picker needs them to navigate.
+     * Categories and folders travel with the placed subtrees: they carry the
+     * path an administrator uses to tell two identically named courses apart,
+     * and the course picker needs them to navigate.
      *
-     * @param list<int> $refIds
+     * @param list<int> $placedRefIds
      * @return list<array<string,mixed>>
      */
-    private function collectObjects(array $refIds): array
+    private function collectObjects(array $placedRefIds): array
     {
         global $DIC;
 
@@ -170,29 +186,51 @@ final class StructurePushJob extends BaseJob
         $seen = [];
         $out = [];
 
-        foreach ($refIds as $refId) {
+        // Schicht 1: jeder Kurs und jede Gruppe, ohne Inhalt. Der Typfilter
+        // von getSubTree macht daraus eine Abfrage statt eines Baumlaufs.
+        $root = $tree->getNodeData($tree->getRootId());
+        foreach ($tree->getSubTree($root, true, self::CONTAINER_TYPES) as $node) {
+            $child = (int) ($node['child'] ?? 0);
+            if ($child <= 0 || isset($seen[$child])) {
+                continue;
+            }
+            $seen[$child] = true;
+            $out[] = $this->describe($node, $child);
+        }
+
+        // Schicht 2: alles unterhalb der platzierten Container.
+        foreach ($placedRefIds as $refId) {
             if (!$tree->isInTree($refId)) {
                 continue;
             }
-            $root = $tree->getNodeData($refId);
-            foreach (array_merge([$root], $tree->getSubTree($root)) as $node) {
-                $child = (int) ($node['child'] ?? 0);
+            $node = $tree->getNodeData($refId);
+            foreach (array_merge([$node], $tree->getSubTree($node)) as $sub) {
+                $child = (int) ($sub['child'] ?? 0);
                 if ($child <= 0 || isset($seen[$child])) {
                     continue;
                 }
                 $seen[$child] = true;
-                $out[] = [
-                    'external_id' => $child,
-                    'external_obj_id' => (int) ($node['obj_id'] ?? 0),
-                    'parent_external_id' => (int) ($node['parent'] ?? 0) ?: null,
-                    'object_type' => (string) ($node['type'] ?? 'unknown'),
-                    'title' => (string) ($node['title'] ?? ''),
-                    'path' => $this->pathOf($child),
-                ];
+                $out[] = $this->describe($sub, $child);
             }
         }
 
         return $out;
+    }
+
+    /**
+     * @param array<string,mixed> $node
+     * @return array<string,mixed>
+     */
+    private function describe(array $node, int $refId): array
+    {
+        return [
+            'external_id' => $refId,
+            'external_obj_id' => (int) ($node['obj_id'] ?? 0),
+            'parent_external_id' => (int) ($node['parent'] ?? 0) ?: null,
+            'object_type' => (string) ($node['type'] ?? 'unknown'),
+            'title' => (string) ($node['title'] ?? ''),
+            'path' => $this->pathOf($refId),
+        ];
     }
 
     private function pathOf(int $refId): string
