@@ -27,11 +27,30 @@ class ilAlphabeesTutorUIHookGUI extends ilUIHookPluginGUI
     /** The full page. Partial renders carry other identifiers. */
     private const MAIN_TEMPLATE = 'tpl.main.html';
 
+    /**
+     * Whether this render is the whole page.
+     *
+     * Compared by BASENAME, not by equality. ILIAS builds the identifier in
+     * ilTemplate::getTemplateIdentifier() as `$in_module . '/' . basename()`,
+     * and `in_module` defaults to the empty string — which is `!== null`, so
+     * the separator is appended anyway. A plain course page therefore arrives
+     * as '/tpl.main.html', with a leading slash, and a module-scoped render as
+     * 'components/ILIAS/Foo/tpl.main.html'. An equality check against
+     * 'tpl.main.html' matches none of them and the widget never appears.
+     *
+     * Measured against ILIAS 11.4, not assumed: that equality check is exactly
+     * what shipped first, and it rendered on no page at all.
+     */
+    private function isMainTemplate(string $tplId): bool
+    {
+        return $tplId !== '' && basename($tplId) === self::MAIN_TEMPLATE;
+    }
+
     public function getHTML(string $a_comp, string $a_part, array $a_par = []): array
     {
         $keep = ['mode' => ilUIHookPluginGUI::KEEP, 'html' => ''];
 
-        if ($a_part !== 'template_show' || ($a_par['tpl_id'] ?? '') !== self::MAIN_TEMPLATE) {
+        if ($a_part !== 'template_show' || !$this->isMainTemplate((string) ($a_par['tpl_id'] ?? ''))) {
             return $keep;
         }
 
