@@ -32,6 +32,7 @@ Für ILIAS 11. Die Versionsbindung in `plugin.php` ist hart: ILIAS prüft sie in
 ```bash
 # 1. Beide Plugins an ihren Platz
 cp -r plugins/Services/* /var/www/html/public/Customizing/global/plugins/Services/
+chown -R www-data:www-data /var/www/html/public/Customizing/global/plugins
 
 # 2. Klassen bekannt machen. ILIAS lädt Plugin-Klassen über den
 #    composer-Classmap (siehe composer.json der ILIAS-Installation,
@@ -39,13 +40,31 @@ cp -r plugins/Services/* /var/www/html/public/Customizing/global/plugins/Service
 #    ILIAS die Klassen nicht.
 cd /var/www/html && composer dump-autoload -o
 
-# 3. Installieren und aktivieren
-php cli/setup.php update --legacy-plugin=AlphabeesTutor     <config.json>
-php cli/setup.php update --legacy-plugin=AlphabeesTutorSync <config.json>
+# 3. Plugin-Verzeichnis einlesen
+php cli/setup.php build
 ```
 
-Danach in ILIAS: **Administration → Plugins → AlphabeesTutor → Konfigurieren**,
-den Code aus dem AlphaLearn-Portal (Integrationen) einfügen, verbinden.
+**Schritt 2 und 3 brauchen Schreibrecht** auf `vendor/` und `artifacts/`. In
+den üblichen Abbildern gehören beide `root`, nicht `www-data`. Laufen die
+Befehle als `www-data`, meldet composer eine Verweigerung — und `build` meldet
+`[OK]` und schreibt trotzdem nichts, was schwerer zu bemerken ist. Prüfen:
+
+```bash
+grep -l Alphabees /var/www/html/artifacts/*.php   # muss etwas finden
+```
+
+Danach in ILIAS: **Administration → Plugins**. Dort stehen beide Einträge;
+erst *Installieren*, dann *Aktivieren* — zuerst `AlphabeesTutor`, denn ihm
+gehören die Tabellen und `AlphabeesTutorSync` verweigert die Aktivierung ohne
+ihn.
+
+> `php cli/setup.php update --legacy-plugin=<Name>` ist für **spätere**
+> Aktualisierungen. Für die Erstinstallation reicht es nicht: ILIAS aktiviert
+> darüber nur, was bereits installiert ist, und einen CLI-Unterbefehl zum
+> Installieren eines einzelnen Plugins gibt es nicht.
+
+Zum Schluss **AlphabeesTutor → Konfigurieren**, den Code aus dem
+AlphaLearn-Portal (Integrationen → ILIAS) einfügen, verbinden.
 
 Die drei Cron-Jobs erscheinen unter **Administration → Cron-Jobs** und sind
 vorab aktiv. Der Job „Zuordnungen holen" ist der wichtige: ohne ihn bleibt die

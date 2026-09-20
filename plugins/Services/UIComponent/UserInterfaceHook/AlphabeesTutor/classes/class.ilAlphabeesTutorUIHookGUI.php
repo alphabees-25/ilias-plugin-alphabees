@@ -67,6 +67,7 @@ class ilAlphabeesTutorUIHookGUI extends ilUIHookPluginGUI
         if ($user === null || ilObjUser::_isAnonymous($user->getId())) {
             return null;
         }
+        $usrId = (int) $user->getId();
 
         $db = $DIC->database();
         $config = new Config($db);
@@ -93,7 +94,15 @@ class ilAlphabeesTutorUIHookGUI extends ilUIHookPluginGUI
         // Read permission on the container, not on the page: a learner who may
         // not enter the course has no business getting its agent, even if some
         // other object inside it happens to be readable.
-        if (!$DIC->access()->checkAccess('read', '', $containerRefId)) {
+        //
+        // checkAccessOfUser, not checkAccess: the access service answers for
+        // the user it was CONSTRUCTED with, not for whoever $DIC->user()
+        // returns at call time. During a normal page render those are the
+        // same, so both would work here — but naming the user makes the
+        // intent explicit and immune to that difference. The same trap cost
+        // us a day on the SOAP path, where ilRbacSystem kept answering as
+        // 'anonymous' no matter which user we set afterwards.
+        if (!$DIC->access()->checkAccessOfUser($usrId, 'read', '', $containerRefId)) {
             return null;
         }
 
@@ -102,7 +111,7 @@ class ilAlphabeesTutorUIHookGUI extends ilUIHookPluginGUI
             return null;
         }
 
-        return $this->renderSnippet($placement, $loaderUrl, $apiKey, $containerRefId, (int) $user->getId());
+        return $this->renderSnippet($placement, $loaderUrl, $apiKey, $containerRefId, $usrId);
     }
 
     /**
