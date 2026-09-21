@@ -8,6 +8,22 @@ Eine Installation mit gemischten Ständen ist nicht vorgesehen.
 
 ## [Unveröffentlicht]
 
+## [1.3.2] — 2026-09-21
+
+### Behoben
+- **Nach dem Fortsetzen war der Tutor weg.** Eine pausierte Verbindung
+  antwortet auf den Zuordnungs-Abruf mit einer leeren Liste und ihrem
+  Zustand — der Endpunkt bleibt absichtlich erreichbar, sonst erführe ein
+  pausiertes Plugin nie vom Fortsetzen. Das Plugin übernahm diese Leere
+  aber: es löschte seine Zuordnungen und den API-Schlüssel. Früher
+  verschwand das Widget dadurch nicht (dafür sorgt die Zustandsprüfung im
+  Renderer), aber nach dem Fortsetzen stand der Kurs ohne Agenten da.
+- **Und blieb es bis zu zwanzig Minuten.** Vom Fortsetzen erfährt das
+  Plugin nur über das Lebenszeichen, und das läuft als letzter der vier
+  Jobs — der Zuordnungs-Abruf desselben Laufs war da noch geblockt und
+  wartete danach auf seinen eigenen Viertelstundentakt. Der Wechsel zurück
+  auf „aktiv" stellt die Jobs jetzt sofort wieder fällig.
+
 ## [1.3.1] — 2026-09-21
 
 ### Hinzugefügt

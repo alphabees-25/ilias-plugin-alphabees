@@ -121,8 +121,19 @@ final class Config
         if ($state === '') {
             return;
         }
+        $previous = $this->state();
         $this->set(self::STATE, $state);
         $this->set(self::STATE_REASON, $reason ?: null);
+
+        // Zurueck aus der Pause: die eigenen Jobs sofort wieder faellig
+        // stellen. Erfahren wird das Fortsetzen nur ueber das Lebenszeichen,
+        // und das laeuft als LETZTER der vier Jobs — der Zuordnungs-Abruf
+        // desselben Laufs war also noch geblockt und wartet danach auf seinen
+        // eigenen Viertelstundentakt. Der Tutor bliebe nach dem Fortsetzen
+        // bis zu zwanzig Minuten weg, obwohl im Portal alles gruen steht.
+        if ($state === 'active' && $previous !== 'active') {
+            (new CronHealth($this->db))->markDue();
+        }
 
         if ($state === 'disconnected') {
             // Reihenfolge zaehlt: clearPairing() raeumt die Zugangsdaten,
