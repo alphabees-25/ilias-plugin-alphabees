@@ -122,13 +122,17 @@ final class ContentPushJob extends BaseJob
         }
         if ($uploaded === 0 && $failed > 0) {
             return $this->result(JobResult::STATUS_FAIL, sprintf(
-                '%d course(s) failed, nothing sent.', $failed
+                '%d course(s) failed, nothing sent.',
+                $failed
             ));
         }
 
         return $this->ok(sprintf(
             '%d file(s) sent from %d course(s), %d unchanged, %d course(s) failed.',
-            $uploaded, $touched, $skipped, $failed
+            $uploaded,
+            $touched,
+            $skipped,
+            $failed
         ));
     }
 
@@ -150,7 +154,6 @@ final class ContentPushJob extends BaseJob
         // das ist der Preis dafuer, dass nichts Unveraendertes durchs Netz
         // geht, und er faellt lokal an.
         $items = [];
-        $paths = [];
         $node = $tree->getNodeData($courseRefId);
         foreach ($tree->getSubTree($node, true, self::CONTENT_TYPES) as $child) {
             $refId = (int) ($child['child'] ?? 0);
@@ -162,7 +165,6 @@ final class ContentPushJob extends BaseJob
                 continue;
             }
             $items[] = $meta;
-            $paths[$refId] = true;
         }
 
         if ($items === []) {
