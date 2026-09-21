@@ -8,10 +8,34 @@ Eine Installation mit gemischten Ständen ist nicht vorgesehen.
 
 ## [Unveröffentlicht]
 
+## [1.3.1] — 2026-09-21
+
 ### Hinzugefügt
 - `install.sh` — macht die drei Schritte, die Server-Zugang brauchen, und
   prüft nach jedem, ob er gewirkt hat. Gegen eine laufende ILIAS 11.4
   durchgespielt, auch im Docker-Modus.
+
+### Geändert
+- **Nach dem Verbinden läuft der erste Abgleich innerhalb von Minuten statt
+  Stunden.** Der Strukturlauf hat einen Sechs-Stunden-Takt; wer gerade den
+  Code eingefügt hatte, fand im Portal einen halben Tag lang keinen Kurs,
+  dem er einen Agenten zuordnen konnte. Das Verbinden stellt die eigenen
+  Cron-Jobs jetzt sofort wieder fällig, der nächste Anstoß nimmt sie mit.
+
+### Behoben
+- **Das Widget hängt nur noch in der Seite selbst.** ILIAS ruft denselben
+  Hook auch für die Brotkrumenleiste, die rechte Spalte, die
+  Kompetenzansicht und zwei Dashboard-Teile auf — sieben Aufrufstellen im
+  Kern. Die Prüfung dafür war geschrieben, aber nie verdrahtet, das Snippet
+  landete also in jedem dieser Fragmente. Sichtbar war es nicht (ein
+  JavaScript-Wächter machte die Mehrfachen wirkungslos), im Dokument stand
+  es trotzdem.
+- **Deinstallieren lässt jetzt wirklich nichts zurück.** ILIAS legt die
+  Zeilen seiner Plugin-Cron-Jobs beim ersten Zugriff selbst an und löscht
+  sie nie wieder — `unregisterJob` gibt es nur für den Kern. Nach einer
+  Deinstallation blieben vier verwaiste Zeilen mit Zeitplan und letztem
+  Ergebnis stehen, die eine Neuinstallation geerbt hätte. Das Sync-Plugin
+  räumt sie nun selbst weg.
 
 ## [1.3.0] — 2026-09-21
 

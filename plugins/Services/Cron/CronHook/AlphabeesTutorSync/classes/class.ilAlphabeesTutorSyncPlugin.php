@@ -73,4 +73,26 @@ class ilAlphabeesTutorSyncPlugin extends CronHookPlugin
 
         return true;
     }
+
+    /**
+     * Die eigenen Zeilen in `cron_job` mitnehmen.
+     *
+     * ILIAS legt sie beim ersten Zugriff selbst an (JobRepositoryImpl:63)
+     * und loescht sie nie wieder: `unregisterJob` laeuft ausschliesslich
+     * ueber die Komponenten-XML des Kerns, fuer Plugin-Jobs gibt es dort
+     * keinen Weg. Ohne dieses Aufraeumen bleiben nach einer Deinstallation
+     * vier verwaiste Zeilen samt Zeitplan und letztem Ergebnis stehen — und
+     * eine spaetere Neuinstallation erbt den alten Zustand.
+     */
+    protected function afterUninstall(): void
+    {
+        global $DIC;
+
+        $db = $DIC->database();
+        $db->manipulateF(
+            'DELETE FROM cron_job WHERE component = %s',
+            ['text'],
+            [self::PLUGIN_NAME]
+        );
+    }
 }

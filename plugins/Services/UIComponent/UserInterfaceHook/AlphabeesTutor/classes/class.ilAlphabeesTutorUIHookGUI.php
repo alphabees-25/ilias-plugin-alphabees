@@ -24,7 +24,7 @@ use Alphabees\Tutor\Store\Placements;
  */
 class ilAlphabeesTutorUIHookGUI extends ilUIHookPluginGUI
 {
-    /** Name der Hauptvorlage, nur noch als Gegenprobe — siehe mayAppendTo(). */
+    /** Name der Hauptvorlage, nur als Gegenprobe — siehe mayAppendTo(). */
     private const MAIN_TEMPLATE = 'tpl.main.html';
 
     /**
@@ -63,6 +63,18 @@ class ilAlphabeesTutorUIHookGUI extends ilUIHookPluginGUI
     public function getHTML(string $a_comp, string $a_part, array $a_par = []): array
     {
         $keep = ['mode' => ilUIHookPluginGUI::KEEP, 'html' => ''];
+
+        // `template_show` ist nicht der einzige Teil, mit dem ILIAS diesen
+        // Hook ruft: `main_locator`, `right_column`, `personal_skill_html`
+        // und die beiden Dashboard-Teile kommen hier ebenfalls an
+        // (`ilUIHookProcessor`, sieben Aufrufstellen im Kern). Ohne diese
+        // Pruefung haengte das Snippet in jedem davon — in der Brotkrumen-
+        // leiste, in der rechten Spalte, in Fragmenten, die die Seite
+        // spaeter ersetzt. Der JS-Waechter machte die Mehrfachen wirkungslos,
+        // aber sie standen im Dokument.
+        if ($a_part !== 'template_show' || !$this->mayAppendTo((string) ($a_par['tpl_id'] ?? ''))) {
+            return $keep;
+        }
 
         try {
             $snippet = $this->buildSnippet();

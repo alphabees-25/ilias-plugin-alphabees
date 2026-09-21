@@ -161,6 +161,11 @@ class ilAlphabeesTutorConfigGUI extends ilPluginConfigGUI
 
         $DIC['tpl']->setOnScreenMessage('success', $plugin->txt('cfg_pair_ok'), true);
         $this->pullPlacements();
+        // Den Strukturlauf nicht auf seinen naechsten regulaeren Termin
+        // warten lassen: der liegt sechs Stunden entfernt, und bis dahin
+        // steht im Portal kein einziger Kurs, dem sich ein Agent zuordnen
+        // liesse. Der naechste Cron-Anstoss nimmt sie jetzt alle mit.
+        (new CronHealth($db))->markDue();
         $DIC->ctrl()->redirect($this, self::CMD_CONFIGURE);
     }
 

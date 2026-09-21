@@ -79,4 +79,31 @@ final class CronHealth
             'stale' => $last === null || $last < time() - self::STALE_AFTER_SECONDS,
         ];
     }
+
+    /**
+     * Unsere Jobs sofort wieder faellig stellen.
+     *
+     * Gebraucht direkt nach dem Koppeln. Der Strukturlauf geht sonst alle
+     * sechs Stunden — wer gerade den Code eingefuegt hat, faende im Portal
+     * einen halben Tag lang keinen einzigen Kurs, dem er einen Agenten
+     * zuordnen koennte. Genau der Eindruck, den das Plugin vermeiden soll.
+     *
+     * ILIAS entscheidet ueber `job_result_ts`, wann ein Job wieder an der
+     * Reihe ist (`JobManagerImpl::runJob` -> `CronJob::isDue`); NULL heisst
+     * „noch nie gelaufen" und damit faellig. Der naechste Cron-Anstoss
+     * nimmt sie dann alle mit — ohne dass hier im Web-Request etwas laeuft,
+     * das Minuten dauern kann.
+     *
+     * @return int Zeilen, die dadurch tatsaechlich umgesetzt wurden —
+     *             0 heisst: sie waren ohnehin schon faellig
+     */
+    public function markDue(): int
+    {
+        // `manipulate()` liefert die betroffenen Zeilen selbst zurueck —
+        // ein `affectedRows()` gibt es an ilDBInterface nicht.
+        return $this->db->manipulate(
+            'UPDATE cron_job SET job_result_ts = NULL WHERE '
+            . $this->db->like('job_id', 'text', self::JOB_PREFIX . '%')
+        );
+    }
 }
