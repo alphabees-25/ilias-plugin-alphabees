@@ -81,8 +81,8 @@ final class ContentPushJob extends BaseJob
 
     public function run(): JobResult
     {
-        if (!$this->config()->isPaired()) {
-            return $this->nothing('Not paired with AlphaLearn.');
+        if (($blocked = $this->blockedBy()) !== null) {
+            return $blocked;
         }
 
         $db = $this->db();

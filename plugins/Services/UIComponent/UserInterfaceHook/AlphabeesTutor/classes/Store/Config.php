@@ -32,6 +32,13 @@ final class Config
     public const API_KEY = 'api_key';
     public const LOADER_URL = 'loader_url';
 
+    // Verbindungszustand, wie ihn das Backend im Lebenszeichen meldet:
+    // 'active' | 'paused' | 'disconnected'. Ohne ihn liefe ein pausiertes
+    // Plugin munter weiter und bekaeme auf jeden Aufruf eine nackte 401 —
+    // von aussen nicht von einem kaputten Schluessel zu unterscheiden.
+    public const STATE = 'connection_state';
+    public const STATE_REASON = 'connection_reason';
+
     // Health
     public const LAST_ERROR = 'last_error';
     public const LAST_ERROR_AT = 'last_error_at';
@@ -77,6 +84,54 @@ final class Config
         return $this->get(self::REGISTRATION_ID) !== null
             && $this->get(self::PRIVATE_KEY) !== null
             && $this->get(self::BACKEND_URL) !== null;
+    }
+
+    /**
+     * Gekoppelt UND nicht pausiert.
+     *
+     * Massgeblich fuer alles, was nach aussen wirkt: das Widget rendern, Daten
+     * schicken. Wer pausiert, will dass der Tutor verschwindet — nicht, dass
+     * er weiterlaeuft und still Fehler sammelt.
+     */
+    public function isActive(): bool
+    {
+        return $this->isPaired() && $this->state() === 'active';
+    }
+
+    /** 'active' | 'paused' | 'disconnected'. Unbekannt gilt als aktiv:
+     *  eine frische Kopplung hat noch kein Lebenszeichen gesehen. */
+    public function state(): string
+    {
+        $value = (string) $this->get(self::STATE, 'active');
+
+        return $value !== '' ? $value : 'active';
+    }
+
+    /**
+     * Uebernimmt, was das Backend ueber die Verbindung meldet.
+     *
+     * `disconnected` raeumt die Kopplung hier gleich mit ab: die Gegenseite
+     * hat die Zugangsdaten geloescht, unsere sind damit wertlos. Die
+     * Zuordnungen bleiben — genau wie drueben —, damit ein erneutes
+     * Verbinden alles wiederherstellt.
+     */
+    public function applyState(?string $state, ?string $reason = null): void
+    {
+        $state = (string) ($state ?: '');
+        if ($state === '') {
+            return;
+        }
+        $this->set(self::STATE, $state);
+        $this->set(self::STATE_REASON, $reason ?: null);
+
+        if ($state === 'disconnected') {
+            // Reihenfolge zaehlt: clearPairing() raeumt die Zugangsdaten,
+            // danach den Zustand erneut setzen — sonst stuende er wieder auf
+            // dem Vorgabewert 'active' und das Widget kaeme zurueck.
+            $this->clearPairing();
+            $this->set(self::STATE, 'disconnected');
+            $this->set(self::STATE_REASON, $reason ?: null);
+        }
     }
 
     /**

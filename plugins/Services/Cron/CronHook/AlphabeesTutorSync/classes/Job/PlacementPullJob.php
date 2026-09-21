@@ -50,10 +50,10 @@ final class PlacementPullJob extends BaseJob
 
     public function run(): JobResult
     {
-        $config = $this->config();
-        if (!$config->isPaired()) {
-            return $this->nothing('Not paired with AlphaLearn.');
+        if (($blocked = $this->blockedBy()) !== null) {
+            return $blocked;
         }
+        $config = $this->config();
 
         try {
             $client = $this->client();
@@ -65,6 +65,7 @@ final class PlacementPullJob extends BaseJob
         // The key can change in the portal (a key revoked, a new one issued).
         // Taking it from the same answer keeps the widget working without a
         // second round trip — and without an administrator having to notice.
+        $this->applyState($answer);
         $config->set(Config::API_KEY, (string) ($answer['api_key'] ?? ''));
 
         try {

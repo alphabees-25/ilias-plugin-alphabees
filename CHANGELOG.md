@@ -8,6 +8,22 @@ Eine Installation mit gemischten Ständen ist nicht vorgesehen.
 
 ## [Unveröffentlicht]
 
+## [1.3.0] — 2026-09-21
+
+### Hinzugefügt
+- **Pausieren, fortsetzen, trennen wirken jetzt auch im Plugin.** Das Backend
+  meldet den Verbindungszustand in jeder Antwort, die das Plugin ohnehin
+  abholt (Lebenszeichen, Zuordnungs-Abruf). Pausiert heisst: das Widget
+  verschwindet sofort, die Hintergrundläufe halten an. Getrennt heisst: das
+  Plugin löscht seine eigene Kopplung — behält aber die Zuordnungen, damit
+  ein erneutes Verbinden alles wiederherstellt.
+- Der Zustand steht auf der Konfigurationsseite.
+
+### Geändert
+- Das Lebenszeichen läuft auch pausiert weiter. Es ist der einzige Aufruf,
+  den eine pausierte Verbindung beantwortet — und damit der einzige Weg
+  zurück. Wer auch das abschaltet, kommt nie wieder online.
+
 ## [1.2.1] — 2026-09-21
 
 ### Behoben

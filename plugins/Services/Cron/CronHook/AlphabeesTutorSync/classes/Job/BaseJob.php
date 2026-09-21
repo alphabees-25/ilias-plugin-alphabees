@@ -64,6 +64,42 @@ abstract class BaseJob extends CronJob
         return new BackendClient($this->db());
     }
 
+    /**
+     * Was das Backend ueber die Verbindung meldet, uebernehmen.
+     *
+     * Kommt aus jeder Antwort, die es mitschickt (Lebenszeichen und
+     * Platzierungs-Abruf). Ein pausiertes Plugin erfaehrt so von der Pause,
+     * statt sich an 401ern abzuarbeiten.
+     *
+     * @param array<string,mixed> $answer
+     */
+    protected function applyState(array $answer): void
+    {
+        $state = $answer['state'] ?? null;
+        if (is_string($state) && $state !== '') {
+            $this->config()->applyState($state, isset($answer['reason']) ? (string) $answer['reason'] : null);
+        }
+    }
+
+    /**
+     * Gemeinsame Eingangspruefung aller Jobs.
+     *
+     * Gibt ein Ergebnis zurueck, wenn der Job NICHT laufen soll — pausiert
+     * oder gar nicht gekoppelt. Sonst null.
+     */
+    protected function blockedBy(): ?JobResult
+    {
+        $config = $this->config();
+        if (!$config->isPaired()) {
+            return $this->nothing('Not paired with AlphaLearn.');
+        }
+        if ($config->state() === 'paused') {
+            return $this->nothing('Connection paused in the AlphaLearn portal.');
+        }
+
+        return null;
+    }
+
     protected function result(int $status, string $message): JobResult
     {
         $result = new JobResult();

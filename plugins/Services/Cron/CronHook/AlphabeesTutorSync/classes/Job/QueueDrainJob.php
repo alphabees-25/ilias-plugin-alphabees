@@ -53,6 +53,10 @@ final class QueueDrainJob extends BaseJob
 
     public function run(): JobResult
     {
+        // Pausiert wird hier NICHT geblockt: das Lebenszeichen ist der
+        // einzige Aufruf, den eine pausierte Verbindung beantwortet — und
+        // genau daran erfaehrt das Plugin, wenn die Pause wieder aufgehoben
+        // ist. Wer auch das abschaltet, kommt nie zurueck.
         if (!$this->config()->isPaired()) {
             return $this->nothing('Not paired with AlphaLearn.');
         }
@@ -114,11 +118,12 @@ final class QueueDrainJob extends BaseJob
     {
         try {
             $client = $this->client();
-            $client->post($client->sitePath('lifecycle'), array_merge($this->envelopeBase(), [
+            $answer = $client->post($client->sitePath('lifecycle'), array_merge($this->envelopeBase(), [
                 'event' => 'heartbeat',
             ]));
+            $this->applyState($answer);
 
-            return 'Heartbeat acknowledged.';
+            return 'Heartbeat acknowledged (' . $this->config()->state() . ').';
         } catch (Throwable $e) {
             // Never queued: a heartbeat that arrives an hour late says
             // nothing true. The next run sends a fresh one.

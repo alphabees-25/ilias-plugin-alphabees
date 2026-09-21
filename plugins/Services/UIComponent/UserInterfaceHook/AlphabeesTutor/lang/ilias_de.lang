@@ -32,3 +32,7 @@ cron_title#:#Der ILIAS-Cron läuft nicht
 cron_never#:#Die Hintergrundläufe dieses Plugins wurden noch nie ausgeführt. Solange das so bleibt, erscheint kein zugeordneter Agent in einem Kurs, und es werden keine Kursdaten übertragen.
 cron_stale#:#Der letzte Hintergrundlauf war am %s. Seitdem ist nichts mehr passiert — Zuordnungen aus dem Portal kommen derzeit nicht an.
 cron_hint#:#ILIAS startet seine Cron-Jobs nicht selbst, es wartet auf einen Aufruf von außen. Auf dem Server eine Zeile in die crontab eintragen (kein Passwort nötig):
+cfg_status_state#:#Zustand
+cfg_state_active#:#aktiv
+cfg_state_paused#:#pausiert — im AlphaLearn-Portal wieder fortsetzen
+cfg_state_disconnected#:#getrennt

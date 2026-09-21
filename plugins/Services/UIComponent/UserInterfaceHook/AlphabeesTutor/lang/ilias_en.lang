@@ -32,3 +32,7 @@ cron_title#:#The ILIAS cron is not running
 cron_never#:#This plugin's background jobs have never run. Until they do, no placed agent appears in a course and no course data is transferred.
 cron_stale#:#The last background run was on %s. Nothing has happened since — placements from the portal are not arriving.
 cron_hint#:#ILIAS does not start its cron jobs by itself; it waits for a call from outside. Add one line to the server's crontab (no password needed):
+cfg_status_state#:#State
+cfg_state_active#:#active
+cfg_state_paused#:#paused — resume it in the AlphaLearn portal
+cfg_state_disconnected#:#disconnected

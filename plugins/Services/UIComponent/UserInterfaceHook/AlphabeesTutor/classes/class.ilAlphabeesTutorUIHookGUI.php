@@ -100,7 +100,10 @@ class ilAlphabeesTutorUIHookGUI extends ilUIHookPluginGUI
 
         $db = $DIC->database();
         $config = new Config($db);
-        if (!$config->isPaired()) {
+        // isActive(), nicht isPaired(): wer im Portal pausiert, will dass der
+        // Tutor verschwindet — sofort und ueberall, nicht erst wenn der
+        // naechste Abruf scheitert.
+        if (!$config->isActive()) {
             return null;
         }
 

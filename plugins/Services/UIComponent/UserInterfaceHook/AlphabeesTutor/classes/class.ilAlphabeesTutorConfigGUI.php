@@ -246,6 +246,7 @@ class ilAlphabeesTutorConfigGUI extends ilPluginConfigGUI
         $newest = $placements->newestUpdate();
 
         $rows = [
+            $plugin->txt('cfg_status_state') => $plugin->txt('cfg_state_' . $config->state()),
             $plugin->txt('cfg_status_site') => (string) $config->get(Config::SITE_IDENTIFIER, '—'),
             $plugin->txt('cfg_status_registration') => (string) $config->get(Config::REGISTRATION_ID, '—'),
             $plugin->txt('cfg_status_placements') => (string) $placements->count(),
