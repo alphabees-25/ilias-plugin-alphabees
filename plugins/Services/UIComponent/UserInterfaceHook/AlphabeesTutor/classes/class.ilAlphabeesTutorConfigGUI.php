@@ -5,6 +5,7 @@ declare(strict_types=1);
 use Alphabees\Tutor\Client\BackendClient;
 use Alphabees\Tutor\Client\Signer;
 use Alphabees\Tutor\Store\Config;
+use Alphabees\Tutor\Store\CronHealth;
 use Alphabees\Tutor\Store\Placements;
 use Alphabees\Tutor\Store\Queue;
 
@@ -253,7 +254,8 @@ class ilAlphabeesTutorConfigGUI extends ilPluginConfigGUI
             $plugin->txt('cfg_status_error') => (string) $config->get(Config::LAST_ERROR, '—'),
         ];
 
-        $html = '<table class="table table-striped"><tbody>';
+        $html = $this->cronWarningHtml();
+        $html .= '<table class="table table-striped"><tbody>';
         foreach ($rows as $label => $value) {
             $html .= '<tr><th style="width:18rem">' . ilLegacyFormElementsUtil::prepareFormOutput($label)
                 . '</th><td>' . ilLegacyFormElementsUtil::prepareFormOutput($value) . '</td></tr>';
@@ -261,6 +263,41 @@ class ilAlphabeesTutorConfigGUI extends ilPluginConfigGUI
         $html .= '</tbody></table>';
 
         return $html;
+    }
+
+    /**
+     * Sagt es, wenn der ILIAS-Cron nicht laeuft.
+     *
+     * Ohne ihn stehen unsere Jobs auf „aktiv" und laufen trotzdem nie — nach
+     * aussen sieht das aus wie ein kaputtes Plugin: im Portal wird ein Agent
+     * zugeordnet, und in ILIAS passiert nichts. Das ist der haeufigste Grund,
+     * warum eine frische Installation stillsteht, und er ist von aussen nicht
+     * zu erkennen. Also sagt das Plugin es hier, mit der Zeile zum Kopieren.
+     */
+    private function cronWarningHtml(): string
+    {
+        global $DIC;
+
+        $plugin = $this->getPluginObject();
+        $state = (new CronHealth($DIC->database()))->state();
+        if (!$state['stale']) {
+            return '';
+        }
+
+        $line = 'php ' . ILIAS_ABSOLUTE_PATH . '/cli/cron.php run-jobs root '
+            . (defined('CLIENT_ID') ? CLIENT_ID : 'default');
+
+        $text = $state['ever_ran']
+            ? sprintf($plugin->txt('cron_stale'), date('d.m.Y H:i', (int) $state['last_run']))
+            : $plugin->txt('cron_never');
+
+        return '<div class="alert alert-warning" role="alert">'
+            . '<strong>' . ilLegacyFormElementsUtil::prepareFormOutput($plugin->txt('cron_title')) . '</strong>'
+            . '<p>' . ilLegacyFormElementsUtil::prepareFormOutput($text) . '</p>'
+            . '<p>' . ilLegacyFormElementsUtil::prepareFormOutput($plugin->txt('cron_hint')) . '</p>'
+            . '<pre style="white-space:pre-wrap">*/5 * * * * '
+            . ilLegacyFormElementsUtil::prepareFormOutput($line) . '</pre>'
+            . '</div>';
     }
 
     private function pluginVersion(): string

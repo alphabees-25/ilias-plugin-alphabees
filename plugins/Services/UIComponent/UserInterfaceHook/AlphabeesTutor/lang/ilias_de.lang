@@ -28,3 +28,7 @@ job_push_title#:#AlphaLearn: Kurse und Mitglieder senden
 job_push_desc#:#Sendet Kursstruktur, Mitgliedschaften und Lernstand der zugeordneten Kurse an AlphaLearn.
 job_drain_title#:#AlphaLearn: Warteschlange abarbeiten
 job_drain_desc#:#Sendet liegengebliebene Stapel erneut, mit wachsendem Abstand.
+cron_title#:#Der ILIAS-Cron läuft nicht
+cron_never#:#Die Hintergrundläufe dieses Plugins wurden noch nie ausgeführt. Solange das so bleibt, erscheint kein zugeordneter Agent in einem Kurs, und es werden keine Kursdaten übertragen.
+cron_stale#:#Der letzte Hintergrundlauf war am %s. Seitdem ist nichts mehr passiert — Zuordnungen aus dem Portal kommen derzeit nicht an.
+cron_hint#:#ILIAS startet seine Cron-Jobs nicht selbst, es wartet auf einen Aufruf von außen. Auf dem Server eine Zeile in die crontab eintragen (kein Passwort nötig):

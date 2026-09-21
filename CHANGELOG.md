@@ -8,6 +8,14 @@ Eine Installation mit gemischten Ständen ist nicht vorgesehen.
 
 ## [Unveröffentlicht]
 
+## [1.2.0] — 2026-09-21
+
+### Hinzugefügt
+- **Hinweis, wenn der ILIAS-Cron nicht läuft.** ILIAS startet seine Jobs nicht
+  selbst; fehlt der Anstoß von außen, stehen unsere Jobs auf „aktiv" und
+  laufen trotzdem nie — nach außen sieht das aus wie ein kaputtes Plugin. Die
+  Konfigurationsseite sagt es jetzt, mit der fertigen crontab-Zeile.
+
 ## [1.1.0] — 2026-09-21
 
 ### Hinzugefügt
