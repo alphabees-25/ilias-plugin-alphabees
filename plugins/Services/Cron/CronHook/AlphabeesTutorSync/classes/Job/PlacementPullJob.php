@@ -67,7 +67,15 @@ final class PlacementPullJob extends BaseJob
         // second round trip — and without an administrator having to notice.
         $config->set(Config::API_KEY, (string) ($answer['api_key'] ?? ''));
 
-        $written = (new Placements($this->db()))->replaceAll((array) ($answer['placements'] ?? []));
+        try {
+            $written = (new Placements($this->db()))->replaceAll((array) ($answer['placements'] ?? []));
+        } catch (Throwable $e) {
+            // Ein Schreibfehler ist unser Problem, kein Absturz des
+            // Cron-Laufs: ILIAS zeigt STATUS_FAIL in der Verwaltung an, der
+            // naechste Lauf versucht es erneut, und alle anderen Jobs der
+            // Installation laufen weiter.
+            return $this->failed($e);
+        }
 
         if ($written === 0) {
             return $this->result(

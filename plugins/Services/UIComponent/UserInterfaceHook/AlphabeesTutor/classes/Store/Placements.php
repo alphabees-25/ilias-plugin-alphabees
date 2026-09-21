@@ -67,12 +67,23 @@ final class Placements
         $now = time();
         $this->db->manipulate('DELETE FROM ' . self::TABLE);
         $written = 0;
+        $seen = [];
         foreach ($items as $item) {
             $refId = (int) ($item['ref_id'] ?? 0);
             $botId = (string) ($item['bot_id'] ?? '');
             if ($refId <= 0 || $botId === '') {
                 continue;
             }
+            // Eine ref_id nur einmal. Das Backend liefert kursweite
+            // Platzierungen, also je Kurs hoechstens eine — aber diese Tabelle
+            // fuehrt die ref_id als Primaerschluessel, und ein Doppel bricht
+            // mit "Duplicate entry" den ganzen Lauf ab, statt nur eine Zeile
+            // zu verlieren. Genau das ist passiert, als ein deep-gelinkter
+            // Launch eine zweite Zeile fuer denselben Kurs anlegte.
+            if (isset($seen[$refId])) {
+                continue;
+            }
+            $seen[$refId] = true;
             $this->db->insert(self::TABLE, [
                 'ref_id' => ['integer', $refId],
                 'bot_id' => ['text', $botId],
