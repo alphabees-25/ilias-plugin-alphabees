@@ -15,5 +15,14 @@ jobs:
           php-version: '8.2'
       - name: Syntax
         run: find plugins -name '*.php' -print0 | xargs -0 -n1 php -l
+      - name: Codestil (PSR-12)
+        # ILIAS selbst fixiert @PSR12 in scripts/PHP-CS-Fixer/code-format.php_cs
+        # und weicht nur in Kleinigkeiten ab. Wer Plugins in die ILIAS-Liste
+        # bringen will, sollte nicht daneben liegen.
+        run: |
+          curl -sSL -o /tmp/php-cs-fixer.phar https://cs.symfony.com/download/php-cs-fixer-v3.phar
+          PHP_CS_FIXER_IGNORE_ENV=1 php /tmp/php-cs-fixer.phar fix \
+            --dry-run --diff --rules=@PSR12 --using-cache=no plugins
+
       - name: Bauskript
         run: ./build.sh
