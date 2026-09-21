@@ -29,6 +29,22 @@ Für ILIAS 11. Die Versionsbindung in `plugin.php` ist hart: ILIAS prüft sie in
 `ilPluginInfo::isCompliantToILIAS()`, und es gibt keinen Schalter, der das
 übergeht. Für andere ILIAS-Hauptversionen gibt es einen eigenen Branch.
 
+### Der kurze Weg
+
+Auf dem ILIAS-Server, als root:
+
+```bash
+./install.sh /var/www/html                      # oder
+./install.sh /var/www/html --docker <container>
+```
+
+Das Skript macht genau die drei Schritte, die Server-Zugang brauchen, und
+prüft nach jedem, ob er gewirkt hat — der wichtigste Grund dafür: `build`
+meldet `[OK]` und schreibt trotzdem nichts, wenn ihm das Schreibrecht auf
+`artifacts/` fehlt. Danach geht es in der Oberfläche weiter.
+
+### Oder von Hand
+
 Fertige Pakete stehen unter [Releases](https://github.com/alphabees-25/ilias-plugin-alphabees/releases):
 `AlphabeesTutor-<version>.zip` und `AlphabeesTutorSync-<version>.zip`. Beide
 tragen dieselbe Version und gehören zusammen. Selbst bauen: `./build.sh`.
@@ -60,6 +76,18 @@ Befehle als `www-data`, meldet composer eine Verweigerung — und `build` meldet
 ```bash
 grep -l Alphabees /var/www/html/artifacts/*.php   # muss etwas finden
 ```
+
+### Wer was macht
+
+| Schritt | Wer | Wie oft |
+|---|---|---|
+| Dateien, `composer dump-autoload`, `cli/setup.php build` | jemand mit Server-Zugang (IT oder Hoster) | einmal, dann bei Updates |
+| Installieren + Aktivieren | ILIAS-Administrator, Weboberfläche | einmal |
+| Code einfügen, Agenten zuordnen | E-Learning-Team, Portal + Weboberfläche | laufend |
+
+ILIAS hat **keinen Marktplatz**: die Plugin-Verwaltung kann weder hochladen
+noch herunterladen. Die Liste auf docu.ilias.de ist ein Verzeichnis mit Links.
+Jedes Plugin — gelistet oder nicht — wird gleich eingespielt, seit ILIAS 9.
 
 Danach in ILIAS: **Administration → Plugins**. Dort stehen beide Einträge;
 erst *Installieren*, dann *Aktivieren* — zuerst `AlphabeesTutor`, denn ihm

@@ -8,6 +8,11 @@ Eine Installation mit gemischten Ständen ist nicht vorgesehen.
 
 ## [Unveröffentlicht]
 
+### Hinzugefügt
+- `install.sh` — macht die drei Schritte, die Server-Zugang brauchen, und
+  prüft nach jedem, ob er gewirkt hat. Gegen eine laufende ILIAS 11.4
+  durchgespielt, auch im Docker-Modus.
+
 ## [1.3.0] — 2026-09-21
 
 ### Hinzugefügt
