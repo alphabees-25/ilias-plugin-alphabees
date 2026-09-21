@@ -26,7 +26,7 @@ class ilAlphabeesTutorPlugin extends ilUserInterfaceHookPlugin
      * older than one labelled "3.1.1" if it was cut first. The release string
      * is for humans.
      */
-    public const VERSION_CODE = 2026092000;
+    public const VERSION_CODE = 2026092101;
 
     /**
      * What this build can do. The backend stops asking over SOAP for anything
@@ -37,7 +37,7 @@ class ilAlphabeesTutorPlugin extends ilUserInterfaceHookPlugin
      */
     public static function capabilities(): array
     {
-        return ['objects', 'members', 'progress', 'placements'];
+        return ['objects', 'members', 'progress', 'placements', 'content'];
     }
 
     public function getPluginName(): string

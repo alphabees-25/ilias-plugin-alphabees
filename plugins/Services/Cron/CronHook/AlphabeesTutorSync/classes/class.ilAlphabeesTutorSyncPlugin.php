@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Alphabees\Tutor\Sync\Job\ContentPushJob;
 use Alphabees\Tutor\Sync\Job\PlacementPullJob;
 use Alphabees\Tutor\Sync\Job\QueueDrainJob;
 use Alphabees\Tutor\Sync\Job\StructurePushJob;
@@ -9,7 +10,7 @@ use ILIAS\Cron\CronHookPlugin;
 use ILIAS\Cron\CronJob;
 
 /**
- * Provides the three background jobs.
+ * Provides the background jobs.
  *
  * The plugin owns no tables of its own. Everything it reads and writes
  * belongs to the AlphabeesTutor plugin — pairing, placements, queue, cursor.
@@ -37,6 +38,7 @@ class ilAlphabeesTutorSyncPlugin extends CronHookPlugin
         return [
             new PlacementPullJob($this),
             new StructurePushJob($this),
+            new ContentPushJob($this),
             new QueueDrainJob($this),
         ];
     }

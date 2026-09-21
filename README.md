@@ -7,7 +7,7 @@ Benutzer, keine Rechtevorlagen, kein LTI-Objekt.
 | Plugin | Steckplatz | Zweck |
 |---|---|---|
 | `AlphabeesTutor` | `uihk` | zeigt das Widget auf den Seiten eines Kurses mit Zuordnung |
-| `AlphabeesTutorSync` | `crnhk` | holt die Zuordnungen und sendet Kurse, Mitglieder, Lernstand |
+| `AlphabeesTutorSync` | `crnhk` | holt die Zuordnungen und sendet Kurse, Mitglieder, Lernstand und Kursdateien |
 
 Beide gehören zusammen und tragen dieselbe Versionsnummer. Das Cron-Plugin
 verweigert die Aktivierung, solange das andere nicht verbunden ist: ihm gehören
@@ -86,6 +86,8 @@ Portal                        ILIAS
   │◀── Zuordnungen holen ───────┤  alle 15 min   (PlacementPullJob)
   │                             │
   │◀── Kurse, Mitglieder ───────┤  alle 6 h      (StructurePushJob)
+  │                             │
+  │◀── Kursdateien ─────────────┤  alle 12 h     (ContentPushJob)
   │                             │
   │◀── Lebenszeichen, Reste ────┤  alle 5 min    (QueueDrainJob)
   │                             │

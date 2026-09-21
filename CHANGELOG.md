@@ -8,6 +8,32 @@ Eine Installation mit gemischten Ständen ist nicht vorgesehen.
 
 ## [Unveröffentlicht]
 
+## [1.1.0] — 2026-09-21
+
+### Hinzugefügt
+- **Kursdateien ohne SOAP und WebDAV.** Ein neuer Cron-Job (`ContentPushJob`,
+  alle 12 h) liest die Dateien zugeordneter Kurse in ILIAS selbst und schickt
+  sie in die Wissensbasis. Damit entfallen technischer Benutzer, eigene Rolle,
+  Rechtevorgaben, SOAP-Freischaltung im Setup und IP-Freigabe.
+  Das Plugin meldet dafür die Fähigkeit `content`; das Backend hört daraufhin
+  auf, dieselben Dateien per SOAP zu holen.
+- Zweistufiger Abgleich: erst ein Verzeichnis ohne Inhalt, dann nur die
+  Dateien, die dem Backend fehlen. Ein Kurs mit 300 unveränderten PDFs löst
+  keinen einzigen Upload aus.
+
+### Geändert
+- `checkAccessOfUser` statt `checkAccess` beim Rendern — die Prüfung benennt
+  jetzt, wessen Recht gemeint ist.
+- Die Zuordnungen verfallen nicht mehr nach drei Stunden. Blieb der Abruf aus,
+  verschwand der Tutor vorher aus allen Kursen, ohne Hinweis.
+
+### Behoben
+- Das Widget erschien auf keiner Seite: der Hook verglich `tpl_id`, was auf
+  einer echten Kursseite leer ist. Entschieden wird jetzt an `template_show`.
+- `Administration → Plugins` stürzte ab, weil der ConfigGUI
+  `@ilCtrl_IsCalledBy` fehlte.
+- Doppelte `ref_id` im Abruf brach den ganzen Lauf ab.
+
 ## [1.0.0] — 2026-09-21
 
 Erste Fassung. Zwei Plugins, die zusammen den AlphaLearn-Tutor in ILIAS 11

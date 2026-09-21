@@ -6,3 +6,5 @@ job_push_title#:#AlphaLearn: send courses and members
 job_push_desc#:#Sends course structure, memberships and learning progress of placed courses to AlphaLearn. Placed courses only, not the whole repository.
 job_drain_title#:#AlphaLearn: drain queue
 job_drain_desc#:#Retries batches that did not get through, with growing delay, and reports the plugin's state while doing so.
+job_content_title#:#AlphaLearn: send course files
+job_content_desc#:#Sends the files of placed courses to the knowledge base. Replaces the WebDAV and SOAP path; only changed files travel.
