@@ -55,10 +55,14 @@ final class CronHealth
 
         // `cron_job` gehoert ILIAS. Rohes SQL, weil es dafuer kein Modell von
         // uns gibt und die Spalten seit Jahren stabil sind.
-        $res = $this->db->queryF(
-            'SELECT job_id, job_result_ts FROM cron_job WHERE ' . $this->db->like('job_id', 'text', self::JOB_PREFIX . '%'),
-            [],
-            []
+        //
+        // `query()`, nicht `queryF()`: `like()` liefert eine fertige
+        // Bedingung ohne Platzhalter, und queryF verlangt dann ein Argument,
+        // das es nicht gibt — "The arguments array must contain 1 items,
+        // 0 given".
+        $res = $this->db->query(
+            'SELECT job_id, job_result_ts FROM cron_job WHERE '
+            . $this->db->like('job_id', 'text', self::JOB_PREFIX . '%')
         );
         while ($row = $this->db->fetchAssoc($res)) {
             $registered++;

@@ -8,6 +8,16 @@ Eine Installation mit gemischten Ständen ist nicht vorgesehen.
 
 ## [Unveröffentlicht]
 
+## [1.2.1] — 2026-09-21
+
+### Behoben
+- Die Cron-Prüfung stürzte ab (`queryF` ohne Platzhalter). Sie war neu und
+  bis zum ersten vollständigen Durchlauf nie ausgeführt worden.
+- Der Warteschlangen-Job meldete fest verdrahtet „Backend unreachable",
+  auch wenn der wahre Grund ein HTTP 500 war. Jetzt steht der echte Fehler
+  in der Meldung — eine, die in die falsche Richtung schickt, ist schlimmer
+  als gar keine.
+
 ## [1.2.0] — 2026-09-21
 
 ### Hinzugefügt

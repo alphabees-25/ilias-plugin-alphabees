@@ -63,6 +63,7 @@ final class QueueDrainJob extends BaseJob
 
         $sent = 0;
         $failed = 0;
+        $lastError = '';
         foreach ($due as $row) {
             $payload = json_decode((string) $row['payload'], true);
             if (!is_array($payload)) {
@@ -77,6 +78,7 @@ final class QueueDrainJob extends BaseJob
                 $sent++;
             } catch (Throwable $e) {
                 $queue->failed((int) $row['id'], (int) $row['tries'], $e->getMessage());
+                $lastError = $e->getMessage();
                 $failed++;
                 // One unreachable backend means all the rest will fail too.
                 // Stop, rather than burn the whole run on timeouts.
@@ -90,9 +92,18 @@ final class QueueDrainJob extends BaseJob
             return $this->nothing('Queue empty. ' . $beat);
         }
         if ($failed > 0 && $sent === 0) {
+            // Den ECHTEN Grund melden. Hier stand einmal fest verdrahtet
+            // "Backend unreachable" — und genau das war es nicht: dahinter
+            // steckte ein HTTP 500 aus unserem eigenen Mitglieder-Endpunkt.
+            // Eine Meldung, die den Leser in die falsche Richtung schickt,
+            // ist schlimmer als gar keine.
             return $this->result(
                 JobResult::STATUS_FAIL,
-                'Backend unreachable; ' . $queue->size() . ' batch(es) waiting.'
+                sprintf(
+                    '%d batch(es) waiting, last error: %s',
+                    $queue->size(),
+                    $lastError !== '' ? $lastError : 'unknown'
+                )
             );
         }
 
