@@ -10,19 +10,13 @@ use ilDBInterface;
  * Which agent hangs on which ref_id — the only thing a page render reads.
  *
  * Filled exclusively by the cron plugin. A page must never wait on our
- * reachability, so an empty or stale table means "render nothing", never
- * "ask the backend now".
+ * reachability, so an empty table means "render nothing", never "ask the
+ * backend now" — and an OLD table means "render what we last knew", see
+ * forRefId().
  */
 final class Placements
 {
     public const TABLE = 'ui_uihk_alphabees_plc';
-
-    /**
-     * How long a pulled list stays usable. The puller runs every 15 minutes;
-     * three hours of tolerance covers a backend outage or a paused cron
-     * without ripping the widget off every course page in the meantime.
-     */
-    public const MAX_AGE_SECONDS = 3 * 3600;
 
     private ilDBInterface $db;
 
@@ -43,14 +37,20 @@ final class Placements
             [$refId]
         );
         $row = $this->db->fetchAssoc($res);
-        if (!$row) {
-            return null;
-        }
-        if ((int) $row['updated_at'] < time() - self::MAX_AGE_SECONDS) {
-            return null;
-        }
 
-        return $row;
+        // Bewusst OHNE Verfallsfrist. Die gab es hier einmal (drei Stunden),
+        // und sie war falsch herum gedacht: bleibt der Abruf aus — ILIAS-Cron
+        // nicht eingerichtet, Backend kurz weg, Wartungsfenster —, verschwand
+        // der Tutor aus allen Kursen, ohne dass irgendwo etwas stand. Genau
+        // das ist auf der Testinstanz passiert: nach acht Stunden ohne
+        // Cron-Lauf rendere die Seite nichts mehr.
+        //
+        // Eine im Portal entfernte Zuordnung verschwindet beim naechsten
+        // erfolgreichen Abruf, weil `replaceAll` die Liste ersetzt. Bis dahin
+        // einen Agenten zu zeigen, den es gerade nicht mehr geben soll, ist
+        // der deutlich kleinere Schaden. Wie alt der Stand ist, steht in der
+        // Plugin-Konfiguration — sichtbar, statt still.
+        return $row ?: null;
     }
 
     /**

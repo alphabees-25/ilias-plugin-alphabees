@@ -15,9 +15,18 @@ use Alphabees\Tutor\Store\Queue;
  * pairing code from the portal, see whether the connection is alive, and
  * disconnect. Everything that needs deciding was decided in the portal.
  *
- * Note for whoever adds a command: the Configure action only appears in the
- * plugin's dropdown after the control structure has been reloaded, which
- * happens when `$version` in plugin.php changes and the plugin is updated.
+ * The @ilCtrl_IsCalledBy line below is NOT decoration. ILIAS builds its
+ * control structure from these annotations (artifact `ctrl_structure`, built
+ * by `cli/setup.php build`). Without it the class is unknown to ilCtrl, and
+ * `ilPluginsOverviewTable` dies with "Class … was not found in the control
+ * structure" while building the Configure link — which takes the whole
+ * Administration -> Plugins page down, not just our row. Measured on
+ * ILIAS 11.4; the annotation was missing in the first release and that page
+ * showed "The requested page could not be found."
+ *
+ * After changing the annotation, `cli/setup.php build` has to run again.
+ *
+ * @ilCtrl_IsCalledBy ilAlphabeesTutorConfigGUI: ilObjComponentSettingsGUI
  */
 class ilAlphabeesTutorConfigGUI extends ilPluginConfigGUI
 {
