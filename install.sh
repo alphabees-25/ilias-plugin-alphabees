@@ -123,10 +123,21 @@ cat <<'DONE'
 
 Fertig. Weiter in ILIAS:
 
-  1. Administration -> Plugins
+  1. ERSTINSTALLATION — Administration -> Plugins
      AlphabeesTutor      -> Installieren, dann Aktivieren
      AlphabeesTutorSync  -> Installieren, dann Aktivieren
      (In dieser Reihenfolge: dem ersten gehoeren die Tabellen.)
+
+  1b. AKTUALISIERUNG — stattdessen an beiden Eintraegen "Aktualisieren",
+     oder auf der Kommandozeile:
+
+       php cli/setup.php update --legacy-plugin=AlphabeesTutor
+       php cli/setup.php update --legacy-plugin=AlphabeesTutorSync
+
+     Ohne diesen Schritt ist das Plugin ABGESCHALTET: ILIAS haelt ein
+     Plugin fuer inaktiv, solange die eingespielte Version von der
+     zuletzt aktualisierten abweicht. Der Tutor verschwindet dann aus
+     allen Kursen und die Hintergrundlaeufe schweigen -- ohne Fehler.
 
   2. AlphabeesTutor -> Konfigurieren
      Den Verbindungscode aus dem AlphaLearn-Portal einfuegen.

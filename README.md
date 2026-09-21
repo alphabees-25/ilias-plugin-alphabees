@@ -102,9 +102,38 @@ ihn.
 Zum Schluss **AlphabeesTutor → Konfigurieren**, den Code aus dem
 AlphaLearn-Portal (Integrationen → ILIAS) einfügen, verbinden.
 
-Die drei Cron-Jobs erscheinen unter **Administration → Cron-Jobs** und sind
+Die vier Cron-Jobs erscheinen unter **Administration → Cron-Jobs** und sind
 vorab aktiv. Der Job „Zuordnungen holen" ist der wichtige: ohne ihn bleibt die
 lokale Tabelle leer und es erscheint in keinem Kurs etwas.
+
+### Aktualisieren — der Schritt, den man nicht auslassen darf
+
+Neue Dateien allein schalten das Plugin **ab**. `ilPluginInfo::isActive()`
+verlangt `!isUpdateRequired()`, und das ist wahr, sobald die eingespielte
+Version von der abweicht, die ILIAS zuletzt aktualisiert hat. Dann liefert
+`getActivePluginsInSlot('uihk')` nichts mehr und `getPluginJobs()` ebenso: der
+Tutor verschwindet aus allen Kursen und die Hintergrundläufe schweigen —
+ohne Fehlermeldung, weil aus ILIAS' Sicht alles in Ordnung ist.
+
+Die Reihenfolge ist deshalb:
+
+```bash
+./install.sh /var/www/html            # Dateien, composer, build
+cd /var/www/html
+php cli/setup.php update --legacy-plugin=AlphabeesTutor
+php cli/setup.php update --legacy-plugin=AlphabeesTutorSync
+```
+
+Oder in der Oberfläche: **Administration → Plugins → Aktualisieren** an beiden
+Einträgen. Danach steht dort bei beiden dieselbe Version unter „installiert"
+und „verfügbar".
+
+> Solange nur die Dateien getauscht und `build` noch nicht gelaufen ist,
+> arbeitet das Plugin weiter — ILIAS vergleicht gegen das Artefakt, nicht
+> gegen `plugin.php`. Es meldet dann aber die **alte** Version ans Portal,
+> während der neue Code läuft. Genau deshalb sortiert das Backend Fähigkeiten
+> nie nach dem Versionsstring, sondern nach `ilias_plugin_version_code` —
+> der ist eine Konstante im Code und wandert sofort mit.
 
 ## Wie es arbeitet
 
