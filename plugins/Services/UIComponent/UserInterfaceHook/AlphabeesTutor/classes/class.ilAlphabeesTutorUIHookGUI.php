@@ -24,35 +24,45 @@ use Alphabees\Tutor\Store\Placements;
  */
 class ilAlphabeesTutorUIHookGUI extends ilUIHookPluginGUI
 {
-    /** The full page. Partial renders carry other identifiers. */
+    /** Name der Hauptvorlage, nur noch als Gegenprobe — siehe mayAppendTo(). */
     private const MAIN_TEMPLATE = 'tpl.main.html';
 
     /**
-     * Whether this render is the whole page.
+     * Whether we may append to this render.
      *
-     * Compared by BASENAME, not by equality. ILIAS builds the identifier in
-     * ilTemplate::getTemplateIdentifier() as `$in_module . '/' . basename()`,
-     * and `in_module` defaults to the empty string — which is `!== null`, so
-     * the separator is appended anyway. A plain course page therefore arrives
-     * as '/tpl.main.html', with a leading slash, and a module-scoped render as
-     * 'components/ILIAS/Foo/tpl.main.html'. An equality check against
-     * 'tpl.main.html' matches none of them and the widget never appears.
+     * Three assumptions about this interface turned out wrong on ILIAS 11.4,
+     * each measured only after the widget failed to appear:
      *
-     * Measured against ILIAS 11.4, not assumed: that equality check is exactly
-     * what shipped first, and it rendered on no page at all.
+     *   tpl_id === 'tpl.main.html'   -> matched nothing; the identifier
+     *                                   carries a leading slash in some paths
+     *   basename(tpl_id) === …       -> a real course page passes tpl_id=''
+     *   html contains '</body>'      -> it does not. What arrives is the
+     *                                   CONTENT FRAGMENT, starting at
+     *                                   <div id="mainspacekeeper">, ~20-50 KB,
+     *                                   with no <html> and no </body>
+     *
+     * So `template_show` itself is the signal, and nothing else is. It fires
+     * two to three times per page load (against ~1500 `template_load`), each
+     * time with a fragment that ends up in the document — appending a script
+     * tag to any of them puts it on the page.
+     *
+     * Firing more than once is handled where it belongs, in the snippet: the
+     * `window.__alphabeesTutorLoaded` guard makes a second injection a no-op.
+     * That is deliberately more robust than picking "the right" one of the
+     * fragments, because which of them survives is once again an assumption
+     * about ILIAS internals.
+     *
+     * A non-empty identifier still has to look like the main template, so a
+     * component rendering its own document does not collect our widget.
      */
-    private function isMainTemplate(string $tplId): bool
+    private function mayAppendTo(string $tplId): bool
     {
-        return $tplId !== '' && basename($tplId) === self::MAIN_TEMPLATE;
+        return $tplId === '' || basename($tplId) === self::MAIN_TEMPLATE;
     }
 
     public function getHTML(string $a_comp, string $a_part, array $a_par = []): array
     {
         $keep = ['mode' => ilUIHookPluginGUI::KEEP, 'html' => ''];
-
-        if ($a_part !== 'template_show' || !$this->isMainTemplate((string) ($a_par['tpl_id'] ?? ''))) {
-            return $keep;
-        }
 
         try {
             $snippet = $this->buildSnippet();
