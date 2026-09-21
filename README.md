@@ -29,9 +29,17 @@ Für ILIAS 11. Die Versionsbindung in `plugin.php` ist hart: ILIAS prüft sie in
 `ilPluginInfo::isCompliantToILIAS()`, und es gibt keinen Schalter, der das
 übergeht. Für andere ILIAS-Hauptversionen gibt es einen eigenen Branch.
 
+Fertige Pakete stehen unter [Releases](https://github.com/alphabees-25/ilias-plugin-alphabees/releases):
+`AlphabeesTutor-<version>.zip` und `AlphabeesTutorSync-<version>.zip`. Beide
+tragen dieselbe Version und gehören zusammen. Selbst bauen: `./build.sh`.
+
 ```bash
-# 1. Beide Plugins an ihren Platz
-cp -r plugins/Services/* /var/www/html/public/Customizing/global/plugins/Services/
+# 1. Beide Plugins an ihren Platz. Das ZIP enthält das Plugin-Verzeichnis an
+#    der Wurzel, also direkt im jeweiligen Steckplatz-Ordner entpacken.
+P=/var/www/html/public/Customizing/global/plugins/Services
+mkdir -p "$P/UIComponent/UserInterfaceHook" "$P/Cron/CronHook"
+unzip -q AlphabeesTutor-1.0.0.zip     -d "$P/UIComponent/UserInterfaceHook"
+unzip -q AlphabeesTutorSync-1.0.0.zip -d "$P/Cron/CronHook"
 chown -R www-data:www-data /var/www/html/public/Customizing/global/plugins
 
 # 2. Klassen bekannt machen. ILIAS lädt Plugin-Klassen über den
@@ -126,12 +134,31 @@ Trennen leert die Zugangsdaten, **behält aber die Zuordnungen**. Wer
 versehentlich trennt oder sein ILIAS neu aufsetzt, verliert keine einzige
 Agent-Zuordnung.
 
+## Cron einrichten
+
+Ohne einen laufenden ILIAS-Cron holt das Plugin nie neue Zuordnungen. ILIAS
+startet seine Jobs nicht selbst — es wartet auf einen Aufruf von aussen:
+
+```
+*/5 * * * * php /var/www/html/cli/cron.php run-jobs root default
+```
+
+Kein Passwort nötig, `run-jobs <user> <client_id>` genügt. ILIAS entscheidet
+bei jedem Aufruf selbst, welcher Job nach seinem Rhythmus fällig ist.
+
 ## Entwickeln
 
 ```bash
-# Syntax aller Dateien
-find plugins -name '*.php' -exec php -l {} \;
+./build.sh                                    # Syntax + Versionen + ZIPs
+find plugins -name '*.php' -exec php -l {} \;  # nur Syntax
 ```
+
+Veröffentlichen: Version in **beiden** `plugin.php` anheben, Abschnitt im
+`CHANGELOG.md` ergänzen, dann `git tag v<version> && git push --tags`. Die
+Freigabe-Aktion baut die ZIPs, prüft dass Tag und Plugin-Version
+übereinstimmen, und hängt sie an das Release. `build.sh` bricht ab, wenn die
+beiden Plugins verschiedene Versionen tragen oder die Version nicht im
+CHANGELOG steht.
 
 Die beiden Slot-Klassen (`ilAlphabeesTutorUIHookGUI`,
 `ilAlphabeesTutorSyncPlugin`) sind bewusst dünn. Beide Steckplätze sind in

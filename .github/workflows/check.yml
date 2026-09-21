@@ -1,0 +1,19 @@
+# Bei jedem Push: Syntax aller PHP-Dateien und ein Probelauf des Bauskripts.
+# Damit faellt ein Versions- oder CHANGELOG-Versehen auf, bevor ein Tag
+# gesetzt wird — und nicht erst beim Release.
+name: Check
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+      - name: Syntax
+        run: find plugins -name '*.php' -print0 | xargs -0 -n1 php -l
+      - name: Bauskript
+        run: ./build.sh

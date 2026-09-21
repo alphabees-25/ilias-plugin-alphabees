@@ -1,0 +1,54 @@
+# Baut die beiden Plugin-ZIPs und haengt sie an ein GitHub-Release.
+#
+# Ausgeloest von einem Tag `v<version>`. Das Skript prueft, dass beide
+# plugin.php dieselbe Version tragen und dass sie im CHANGELOG steht; hier
+# kommt die Pruefung dazu, dass der Tag zu dieser Version passt. Ein Release,
+# dessen Tag nicht zum Plugin-Inhalt passt, ist der Fehler, den man erst beim
+# Kunden bemerkt.
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: PHP bereitstellen
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+
+      - name: ZIPs bauen
+        run: ./build.sh
+
+      - name: Tag gegen Plugin-Version pruefen
+        run: |
+          tag="${GITHUB_REF_NAME#v}"
+          file=$(ls dist/AlphabeesTutor-*.zip)
+          built="${file#dist/AlphabeesTutor-}"; built="${built%.zip}"
+          if [ "$tag" != "$built" ]; then
+            echo "Tag $GITHUB_REF_NAME passt nicht zur gebauten Version $built" >&2
+            exit 1
+          fi
+          echo "Tag und Plugin-Version stimmen ueberein: $built"
+
+      - name: Release anlegen
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/*.zip
+          body: |
+            Beide Plugins tragen dieselbe Version und gehoeren zusammen.
+
+            **Einbauen:** ZIP im Steckplatz-Verzeichnis entpacken, dann
+            `composer dump-autoload -o` und `cli/setup.php build` im
+            ILIAS-Wurzelverzeichnis, danach Administration -> Plugins ->
+            Installieren -> Aktivieren. Einzelheiten in der README.
+
+            Aenderungen: siehe CHANGELOG.md
