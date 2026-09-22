@@ -30,9 +30,24 @@ Fertige Pakete: **[Releases](https://github.com/alphabees-25/ilias-plugin-alphab
 tragen dieselbe Version und gehören zusammen. Was sich je Version geändert hat,
 steht im [Changelog](CHANGELOG.md).
 
-Für ILIAS 11. Die Versionsbindung in `plugin.php` ist hart: ILIAS prüft sie in
+### Unterstützte Versionen
+
+| | |
+|---|---|
+| ILIAS | **11.0 – 11.999** |
+| Geprüft gegen | ILIAS 11.4 (2026-09-03), PHP 8.4 |
+| PHP | was ILIAS 11 ohnehin verlangt: ≥ 8.3, < 8.5 |
+| ILIAS 9 / 10 | nicht unterstützt — je Hauptversion ein eigener Branch |
+| ILIAS 12 | noch nicht erschienen |
+
+Die Bindung in `plugin.php` ist **hart**. ILIAS prüft sie in
 `ilPluginInfo::isCompliantToILIAS()`, und es gibt keinen Schalter, der das
-übergeht. Für andere ILIAS-Hauptversionen gibt es einen eigenen Branch.
+übergeht: auf einer 10er-Installation lässt sich das Plugin nicht aktivieren,
+und eine 12er wird es ebenso ablehnen, bis es dafür einen Branch gibt.
+
+Geprüft wurde bisher gegen **eine** Installation (11.4). Die benutzten
+Steckplätze sind über die 11er-Reihe stabil, gemessen ist es dort aber nicht.
+
 
 ### Der kurze Weg
 
@@ -231,4 +246,4 @@ zu schreiben, nicht die Logik darunter.
 
 ---
 
-© Alphabees GbR · [alphalearn.ai](https://alphalearn.ai)
+© Alphabees UG (haftungsbeschränkt), Berlin · [alphalearn.ai](https://alphalearn.ai)

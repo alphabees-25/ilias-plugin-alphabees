@@ -8,6 +8,20 @@ Eine Installation mit gemischten Ständen ist nicht vorgesehen.
 
 ## [Unveröffentlicht]
 
+## [1.3.3] — 2026-09-22
+
+### Geändert
+- **Die Konfigurationsseite sagt, warum sie kein Code-Feld zeigt.** Ist die
+  Installation bereits verbunden, stehen dort nur „Jetzt aktualisieren" und
+  „Trennen". Wer im Portal gerade einen Verbindungscode erzeugt hatte, suchte
+  die Eingabe vergeblich — und der Code kann aus einem anderen Konto stammen
+  als dem, an dem die Installation hängt. Jetzt steht es als Satz über den
+  Knöpfen.
+- Der Zustand nennt zusätzlich das **Portal**, mit dem diese Installation
+  verbunden ist. Auf einer Instanz, die zwischen Test und Produktion
+  gewandert ist, war sonst nicht zu sehen, wohin sie meldet.
+- Firmenname auf **Alphabees UG (haftungsbeschränkt)** berichtigt.
+
 ## [1.3.2] — 2026-09-21
 
 ### Behoben

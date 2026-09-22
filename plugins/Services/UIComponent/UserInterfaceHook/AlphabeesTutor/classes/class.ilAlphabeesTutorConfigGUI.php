@@ -74,6 +74,11 @@ class ilAlphabeesTutorConfigGUI extends ilPluginConfigGUI
 
         if ($config->isPaired()) {
             $form->setTitle($plugin->txt('cfg_connected_title'));
+            // Warum hier kein Code-Feld steht. Wer im Portal gerade einen
+            // Verbindungscode erzeugt hat und ihn einfuegen will, sucht ihn
+            // sonst vergeblich — und der Code kann aus einem anderen Konto
+            // stammen als dem, an dem diese Installation haengt.
+            $form->setDescription($plugin->txt('cfg_connected_desc'));
             $form->addCommandButton(self::CMD_REFRESH, $plugin->txt('cfg_refresh'));
             $form->addCommandButton(self::CMD_DISCONNECT, $plugin->txt('cfg_disconnect'));
 
@@ -252,6 +257,10 @@ class ilAlphabeesTutorConfigGUI extends ilPluginConfigGUI
 
         $rows = [
             $plugin->txt('cfg_status_state') => $plugin->txt('cfg_state_' . $config->state()),
+            // Mit WELCHEM Portal — sonst ist auf einer Instanz, die zwischen
+            // Test und Produktion gewandert ist, nicht zu sehen, wohin sie
+            // gerade meldet.
+            $plugin->txt('cfg_status_backend') => (string) $config->get(Config::BACKEND_URL, '—'),
             $plugin->txt('cfg_status_site') => (string) $config->get(Config::SITE_IDENTIFIER, '—'),
             $plugin->txt('cfg_status_registration') => (string) $config->get(Config::REGISTRATION_ID, '—'),
             $plugin->txt('cfg_status_placements') => (string) $placements->count(),

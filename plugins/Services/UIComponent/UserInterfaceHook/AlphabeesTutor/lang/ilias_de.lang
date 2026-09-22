@@ -2,6 +2,8 @@
 // Format: schluessel#:#Text. Das Praefix setzt ILIAS selbst davor.
 cfg_pair_title#:#Mit AlphaLearn verbinden
 cfg_connected_title#:#Verbunden mit AlphaLearn
+cfg_connected_desc#:#Diese Installation ist bereits mit AlphaLearn verbunden. Ein neuer Verbindungscode wird erst nach dem Trennen angenommen — auch der eines anderen Kontos.
+cfg_status_backend#:#Portal
 cfg_backend_url#:#AlphaLearn-Adresse
 cfg_backend_url_info#:#Vorgabe beibehalten, sofern Ihr Anbieter nichts anderes nennt.
 cfg_loader_url#:#Widget-Adresse

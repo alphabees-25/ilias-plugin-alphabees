@@ -2,6 +2,8 @@
 // Format: key#:#text. ILIAS prepends the prefix itself.
 cfg_pair_title#:#Connect to AlphaLearn
 cfg_connected_title#:#Connected to AlphaLearn
+cfg_connected_desc#:#This installation is already connected to AlphaLearn. A new connection code is only accepted after disconnecting — including one from a different account.
+cfg_status_backend#:#Portal
 cfg_backend_url#:#AlphaLearn address
 cfg_backend_url_info#:#Keep the default unless your provider says otherwise.
 cfg_loader_url#:#Widget address

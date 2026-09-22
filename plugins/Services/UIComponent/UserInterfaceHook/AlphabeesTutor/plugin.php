@@ -16,12 +16,12 @@ declare(strict_types=1);
 
 $id = 'uihkalphabees';
 
-$version = '1.3.2';
+$version = '1.3.3';
 
 $ilias_min_version = '11.0';
 $ilias_max_version = '11.999';
 
-$responsible = 'Alphabees GbR';
+$responsible = 'Alphabees UG (haftungsbeschränkt)';
 $responsible_mail = 'support@alphabees.de';
 
 // Without this the plugin cannot be installed or updated from cli/setup.php,
