@@ -39,6 +39,15 @@ final class Config
     public const STATE = 'connection_state';
     public const STATE_REASON = 'connection_reason';
 
+    // Wann unsere Cron-Jobs zuletzt tatsaechlich liefen.
+    //
+    // Gebraucht, weil `markDue()` `cron_job.job_result_ts` auf NULL setzt, um
+    // die Jobs sofort faellig zu stellen — und genau daran erkennt ILIAS wie
+    // auch `CronHealth`, ob je ein Lauf stattfand. Ohne diese Kopie behauptet
+    // das Plugin unmittelbar nach dem Koppeln, der Cron sei nie gelaufen, und
+    // zeigt dem Kunden eine Warnung im Moment seines Erfolgs.
+    public const LAST_CRON_RUN = 'last_cron_run';
+
     // Health
     public const LAST_ERROR = 'last_error';
     public const LAST_ERROR_AT = 'last_error_at';

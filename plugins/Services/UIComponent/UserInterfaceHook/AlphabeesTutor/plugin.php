@@ -16,7 +16,7 @@ declare(strict_types=1);
 
 $id = 'uihkalphabees';
 
-$version = '1.3.3';
+$version = '1.3.4';
 
 $ilias_min_version = '11.0';
 $ilias_max_version = '11.999';

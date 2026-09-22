@@ -8,6 +8,17 @@ Eine Installation mit gemischten Ständen ist nicht vorgesehen.
 
 ## [Unveröffentlicht]
 
+## [1.3.4] — 2026-09-22
+
+### Behoben
+- **Direkt nach dem Verbinden warnte das Plugin, der ILIAS-Cron sei nie
+  gelaufen.** Seit 1.3.2 stellt das Koppeln die eigenen Jobs sofort wieder
+  fällig, indem es `cron_job.job_result_ts` leert — und genau daran erkennt
+  die Zustandsanzeige, ob je ein Lauf stattfand. Der Kunde bekam die
+  Warnung also im Augenblick seines Erfolgs. Der letzte Laufzeitpunkt wird
+  jetzt vorher gemerkt und beim Ermitteln des Zustands wieder
+  berücksichtigt.
+
 ## [1.3.3] — 2026-09-22
 
 ### Geändert

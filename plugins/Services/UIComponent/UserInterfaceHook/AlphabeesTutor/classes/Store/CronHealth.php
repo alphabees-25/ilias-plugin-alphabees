@@ -45,6 +45,24 @@ final class CronHealth
         $this->db = $db;
     }
 
+    /** Juengster Lauf laut `cron_job` — ohne unseren gemerkten Wert. */
+    private function lastRunFromCronTable(): ?int
+    {
+        $last = null;
+        $res = $this->db->query(
+            'SELECT job_result_ts FROM cron_job WHERE '
+            . $this->db->like('job_id', 'text', self::JOB_PREFIX . '%')
+        );
+        while ($row = $this->db->fetchAssoc($res)) {
+            $ts = $row['job_result_ts'] === null ? null : (int) $row['job_result_ts'];
+            if ($ts !== null && ($last === null || $ts > $last)) {
+                $last = $ts;
+            }
+        }
+
+        return $last;
+    }
+
     /**
      * @return array{registered:int,ever_ran:bool,last_run:?int,stale:bool}
      */
@@ -70,6 +88,15 @@ final class CronHealth
             if ($ts !== null && ($last === null || $ts > $last)) {
                 $last = $ts;
             }
+        }
+
+        // Was `markDue()` aus `cron_job` entfernt hat, steht hier weiter.
+        // Ohne diesen Rueckgriff meldete die Konfigurationsseite direkt nach
+        // dem Koppeln „der Cron ist nie gelaufen" — obwohl er laeuft und nur
+        // die Faelligkeitsmarke geleert wurde.
+        $remembered = (int) ((new Config($this->db))->get(Config::LAST_CRON_RUN, '0') ?? '0');
+        if ($remembered > 0 && ($last === null || $remembered > $last)) {
+            $last = $remembered;
         }
 
         return [
@@ -99,6 +126,13 @@ final class CronHealth
      */
     public function markDue(): int
     {
+        // Erst merken, dann leeren: der Zeitstempel ist der einzige Beleg
+        // dafuer, dass der Cron ueberhaupt laeuft.
+        $seen = $this->lastRunFromCronTable();
+        if ($seen !== null) {
+            (new Config($this->db))->set(Config::LAST_CRON_RUN, (string) $seen);
+        }
+
         // `manipulate()` liefert die betroffenen Zeilen selbst zurueck —
         // ein `affectedRows()` gibt es an ilDBInterface nicht.
         return $this->db->manipulate(
