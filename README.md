@@ -25,6 +25,11 @@ Installationen ohne Plugin-Rechte, für Häuser mit Änderungsstopp.
 
 ## Einbauen
 
+Fertige Pakete: **[Releases](https://github.com/alphabees-25/ilias-plugin-alphabees/releases/latest)**
+— `AlphabeesTutor-<version>.zip` und `AlphabeesTutorSync-<version>.zip`. Beide
+tragen dieselbe Version und gehören zusammen. Was sich je Version geändert hat,
+steht im [Changelog](CHANGELOG.md).
+
 Für ILIAS 11. Die Versionsbindung in `plugin.php` ist hart: ILIAS prüft sie in
 `ilPluginInfo::isCompliantToILIAS()`, und es gibt keinen Schalter, der das
 übergeht. Für andere ILIAS-Hauptversionen gibt es einen eigenen Branch.
