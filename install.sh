@@ -5,20 +5,14 @@
 #   ./install.sh /var/www/html
 #   ./install.sh /var/www/html --docker ilias11-app
 #
-# Macht genau die drei Schritte, die Server-Zugang brauchen: Dateien an ihren
-# Platz, Klassen bekannt machen, Verzeichnis einlesen. Installieren und
-# Aktivieren geschieht danach in ILIAS unter Administration -> Plugins.
+# Fuehrt die drei Schritte aus, die Server-Zugang erfordern: Dateien an ihren
+# Platz, Klassen bekannt machen, Plugin-Verzeichnis einlesen. Installieren und
+# Aktivieren erfolgt danach in ILIAS unter Administration -> Plugins.
 #
-# WARUM ES DIESES SKRIPT GIBT
-#
-# Die drei Schritte sind einzeln unspektakulaer und zusammen fehleranfaellig:
-# der Pfad ist nicht frei waehlbar, `build` fehlt gern, und beide Befehle
-# brauchen Schreibrecht auf Verzeichnisse, die in gaengigen Abbildern root
-# gehoeren. Faellt eines davon aus, erscheint das Plugin einfach nicht — ohne
-# Fehlermeldung. `build` ist der schlimmste Fall: es meldet [OK] und schreibt
-# trotzdem nichts.
-#
-# Deshalb prueft dieses Skript nach jedem Schritt, ob er gewirkt hat.
+# Nach jedem Schritt wird geprueft, ob er gewirkt hat. Zwei der drei Schritte
+# benoetigen Schreibrecht auf Verzeichnisse, die in gaengigen Abbildern root
+# gehoeren; `cli/setup.php build` endet ohne dieses Recht mit [OK] und
+# schreibt dennoch nichts.
 
 set -euo pipefail
 
@@ -112,7 +106,7 @@ say "Plugin-Verzeichnis einlesen (cli/setup.php build)"
 run_in_ilias "cd '$ILIAS_PATH' && php cli/setup.php build >/dev/null 2>&1" \
   || fail "cli/setup.php build fehlgeschlagen."
 
-# Die wichtigste Pruefung des ganzen Skripts: build meldet [OK] und schreibt
+# Gegenprobe zum vorigen Schritt: build meldet [OK] und schreibt
 # trotzdem nichts, wenn ihm das Schreibrecht auf artifacts/ fehlt.
 FOUND=$(run_in_ilias "grep -rl Alphabees '$ILIAS_PATH/artifacts' 2>/dev/null | head -1" || true)
 [ -n "$FOUND" ] || fail "ILIAS kennt die Plugins nicht. 'build' hat nichts geschrieben — meist fehlt Schreibrecht auf $ILIAS_PATH/artifacts (gehoert oft root). Als root wiederholen."
@@ -121,35 +115,36 @@ echo "   ILIAS kennt die Plugins: ja"
 # --- Fertig ----------------------------------------------------------------
 cat <<'DONE'
 
-Fertig. Weiter in ILIAS:
+Serverseitig abgeschlossen. Weiter in ILIAS:
 
   1. ERSTINSTALLATION — Administration -> Plugins
      AlphabeesTutor      -> Installieren, dann Aktivieren
      AlphabeesTutorSync  -> Installieren, dann Aktivieren
-     (In dieser Reihenfolge: dem ersten gehoeren die Tabellen.)
+     Reihenfolge einhalten: AlphabeesTutor besitzt die Tabellen, und
+     AlphabeesTutorSync verweigert sonst die Aktivierung.
 
   1b. AKTUALISIERUNG — stattdessen an beiden Eintraegen "Aktualisieren",
-     oder auf der Kommandozeile:
+      oder auf der Kommandozeile:
 
-       php cli/setup.php update --legacy-plugin=AlphabeesTutor
-       php cli/setup.php update --legacy-plugin=AlphabeesTutorSync
+        php cli/setup.php update --legacy-plugin=AlphabeesTutor
+        php cli/setup.php update --legacy-plugin=AlphabeesTutorSync
 
-     Ohne diesen Schritt ist das Plugin ABGESCHALTET: ILIAS haelt ein
-     Plugin fuer inaktiv, solange die eingespielte Version von der
-     zuletzt aktualisierten abweicht. Der Tutor verschwindet dann aus
-     allen Kursen und die Hintergrundlaeufe schweigen -- ohne Fehler.
+      Erforderlich. ILIAS behandelt ein Plugin als inaktiv, solange die
+      eingespielte Version von der zuletzt aktualisierten abweicht: das
+      Widget erscheint dann nicht mehr, die Hintergrundlaeufe stehen, und
+      ILIAS meldet keinen Fehler.
 
   2. AlphabeesTutor -> Konfigurieren
-     Den Verbindungscode aus dem AlphaLearn-Portal einfuegen.
+     Verbindungscode aus dem AlphaLearn-Portal einfuegen.
 
-Noch eines, ohne das nichts passiert: ILIAS startet seine Cron-Jobs nicht
-selbst. Laeuft auf diesem Server noch keiner, eine Zeile in die crontab:
+  3. Cron
+     ILIAS startet seine Jobs nicht selbst. Laeuft auf diesem Server noch
+     kein Aufruf, eine Zeile in die crontab:
 
-  */5 * * * * php <ilias-verzeichnis>/cli/cron.php run-jobs <admin> <client>
+       */5 * * * * php <ilias-verzeichnis>/cli/cron.php run-jobs <admin> <client>
 
-Kein Passwort noetig; <admin> ist ein ILIAS-Benutzer mit Administratorrechten
-(meist root), <client> die Mandantenkennung (meist default).
-
-Das Plugin sagt es auf seiner Konfigurationsseite auch selbst, samt fertiger
-Zeile fuer diese Installation.
+     Ohne Passwort. <admin> ist ein ILIAS-Benutzer mit Administratorrechten
+     (ueblicherweise root), <client> die Mandantenkennung (ueblicherweise
+     default). Die Konfigurationsseite des Plugins zeigt die passende Zeile
+     fuer diese Installation.
 DONE

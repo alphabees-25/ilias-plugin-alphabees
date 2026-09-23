@@ -1,248 +1,256 @@
 # AlphaLearn für ILIAS
 
-Zwei ILIAS-Plugins, die zusammen den KI-Tutor von AlphaLearn in ILIAS bringen.
-Ein Code aus dem Portal einfügen — fertig. Kein SOAP, kein technischer
-Benutzer, keine Rechtevorlagen, kein LTI-Objekt.
+Zwei ILIAS-Plugins, die den KI-Tutor von AlphaLearn in eine ILIAS-Installation
+einbinden.
 
-| Plugin | Steckplatz | Zweck |
+| Plugin | Steckplatz | Aufgabe |
 |---|---|---|
-| `AlphabeesTutor` | `uihk` | zeigt das Widget auf den Seiten eines Kurses mit Zuordnung |
-| `AlphabeesTutorSync` | `crnhk` | holt die Zuordnungen und sendet Kurse, Mitglieder, Lernstand und Kursdateien |
+| `AlphabeesTutor` | `uihk` | rendert das Widget auf den Seiten eines Kurses, dem im Portal ein Agent zugeordnet ist |
+| `AlphabeesTutorSync` | `crnhk` | vier Cron-Jobs: Zuordnungen abrufen, Kursstruktur und Mitglieder senden, Kursdateien senden, Warteschlange und Lebenszeichen |
 
-Beide gehören zusammen und tragen dieselbe Versionsnummer. Das Cron-Plugin
-verweigert die Aktivierung, solange das andere nicht verbunden ist: ihm gehören
-die Tabellen und die Kopplung.
+Beide tragen dieselbe Versionsnummer und werden gemeinsam ausgeliefert. Die
+Trennung folgt einer ILIAS-Vorgabe: ein Plugin belegt genau einen Steckplatz.
+`AlphabeesTutor` besitzt die Datenbanktabellen und die Kopplung;
+`AlphabeesTutorSync` prüft in `beforeActivation()`, dass es aktiviert ist, und
+verweigert sonst die eigene Aktivierung.
 
-## Was das gegenüber LTI besser macht
-
-Ein LTI-Launch hängt am Resource Link. Das Widget lebt dann im Kasten eines
-Objekts — klickt die lernende Person auf eine PDF, ist es weg. Ein begleitender
-Tutor braucht aber jede Seite. Das Plugin rendert auf jeder Seite des Kurses,
-und zwar ohne im Seitenaufbau jemals unser Backend zu fragen.
-
-Der LTI-Weg bleibt daneben bestehen — für ILIAS 9/10, für gehostete
-Installationen ohne Plugin-Rechte, für Häuser mit Änderungsstopp.
-
-## Einbauen
-
-Fertige Pakete: **[Releases](https://github.com/alphabees-25/ilias-plugin-alphabees/releases/latest)**
-— `AlphabeesTutor-<version>.zip` und `AlphabeesTutorSync-<version>.zip`. Beide
-tragen dieselbe Version und gehören zusammen. Was sich je Version geändert hat,
-steht im [Changelog](CHANGELOG.md).
-
-### Unterstützte Versionen
+## Unterstützte Versionen
 
 | | |
 |---|---|
-| ILIAS | **11.0 – 11.999** |
+| ILIAS | 11.0 – 11.999 |
 | Geprüft gegen | ILIAS 11.4 (2026-09-03), PHP 8.4 |
-| PHP | was ILIAS 11 ohnehin verlangt: ≥ 8.3, < 8.5 |
-| ILIAS 9 / 10 | nicht unterstützt — je Hauptversion ein eigener Branch |
-| ILIAS 12 | noch nicht erschienen |
+| PHP | Anforderung von ILIAS 11: ≥ 8.3, < 8.5 |
+| Andere Hauptversionen | eigener Branch je Hauptversion |
 
-Die Bindung in `plugin.php` ist **hart**. ILIAS prüft sie in
-`ilPluginInfo::isCompliantToILIAS()`, und es gibt keinen Schalter, der das
-übergeht: auf einer 10er-Installation lässt sich das Plugin nicht aktivieren,
-und eine 12er wird es ebenso ablehnen, bis es dafür einen Branch gibt.
+Die Versionsbindung in `plugin.php` ist bindend. ILIAS prüft sie in
+`ilPluginInfo::isCompliantToILIAS()`; eine Aktivierung auf einer anderen
+Hauptversion ist nicht vorgesehen und lässt sich nicht übergehen.
 
-Geprüft wurde bisher gegen **eine** Installation (11.4). Die benutzten
-Steckplätze sind über die 11er-Reihe stabil, gemessen ist es dort aber nicht.
+Geprüft wurde bisher gegen eine Installation. Die benutzten Steckplätze sind
+über die 11er-Reihe stabil, gemessen ist das dort jedoch nicht.
 
+## Installation
 
-### Der kurze Weg
+### Pakete
 
-Auf dem ILIAS-Server, als root:
+Die Release-Seite führt `AlphabeesTutor-<version>.zip` und
+`AlphabeesTutorSync-<version>.zip`:
+**[Releases](https://github.com/alphabees-25/ilias-plugin-alphabees/releases/latest)**.
+Die Änderungen je Version stehen im [Changelog](CHANGELOG.md). Selbst bauen:
+`./build.sh`.
+
+Jedes ILIAS-Plugin wird über das Dateisystem eingespielt. Die
+Plugin-Verwaltung von ILIAS kennt weder Upload noch Download; das Verzeichnis
+auf docu.ilias.de führt Links, keine Pakete.
+
+### Zuständigkeiten
+
+| Schritt | Ausführende Rolle | Häufigkeit |
+|---|---|---|
+| Dateien einspielen, `composer dump-autoload`, `cli/setup.php build` | Server-Zugang (IT oder Hoster) | einmalig, danach bei jedem Update |
+| Installieren und Aktivieren | ILIAS-Administration, Weboberfläche | einmalig |
+| Verbindungscode einfügen, Agenten zuordnen | E-Learning-Team, Portal und ILIAS | laufend |
+
+### Schritt 1 — Dateien auf den Server
+
+Mit Skript, auf dem ILIAS-Server als root:
 
 ```bash
-./install.sh /var/www/html                      # oder
-./install.sh /var/www/html --docker <container>
+./install.sh /var/www/html
+./install.sh /var/www/html --docker <container>     # ILIAS im Container
 ```
 
-Das Skript macht genau die drei Schritte, die Server-Zugang brauchen, und
-prüft nach jedem, ob er gewirkt hat — der wichtigste Grund dafür: `build`
-meldet `[OK]` und schreibt trotzdem nichts, wenn ihm das Schreibrecht auf
-`artifacts/` fehlt. Danach geht es in der Oberfläche weiter.
+Das Skript führt die drei Schritte aus, die Server-Zugang erfordern, und prüft
+nach jedem, ob er gewirkt hat. Die Prüfung ist erforderlich, weil
+`cli/setup.php build` ohne Schreibrecht auf `artifacts/` mit `[OK]` endet und
+dennoch nichts schreibt.
 
-### Oder von Hand
-
-Fertige Pakete stehen unter [Releases](https://github.com/alphabees-25/ilias-plugin-alphabees/releases):
-`AlphabeesTutor-<version>.zip` und `AlphabeesTutorSync-<version>.zip`. Beide
-tragen dieselbe Version und gehören zusammen. Selbst bauen: `./build.sh`.
+Von Hand:
 
 ```bash
-# 1. Beide Plugins an ihren Platz. Das ZIP enthält das Plugin-Verzeichnis an
-#    der Wurzel, also direkt im jeweiligen Steckplatz-Ordner entpacken.
+# 1. Pakete in den jeweiligen Steckplatz-Ordner entpacken. Das ZIP enthält das
+#    Plugin-Verzeichnis an der Wurzel.
 P=/var/www/html/public/Customizing/global/plugins/Services
 mkdir -p "$P/UIComponent/UserInterfaceHook" "$P/Cron/CronHook"
-unzip -q AlphabeesTutor-1.0.0.zip     -d "$P/UIComponent/UserInterfaceHook"
-unzip -q AlphabeesTutorSync-1.0.0.zip -d "$P/Cron/CronHook"
+unzip -q AlphabeesTutor-<version>.zip     -d "$P/UIComponent/UserInterfaceHook"
+unzip -q AlphabeesTutorSync-<version>.zip -d "$P/Cron/CronHook"
 chown -R www-data:www-data /var/www/html/public/Customizing/global/plugins
 
 # 2. Klassen bekannt machen. ILIAS lädt Plugin-Klassen über den
-#    composer-Classmap (siehe composer.json der ILIAS-Installation,
-#    "./public/Customizing/global/plugins"). Ohne diesen Schritt findet
-#    ILIAS die Klassen nicht.
+#    composer-Classmap (siehe composer.json der Installation,
+#    "./public/Customizing/global/plugins").
 cd /var/www/html && composer dump-autoload -o
 
-# 3. Plugin-Verzeichnis einlesen
+# 3. Plugin-Verzeichnis einlesen.
 php cli/setup.php build
 ```
 
-**Schritt 2 und 3 brauchen Schreibrecht** auf `vendor/` und `artifacts/`. In
-den üblichen Abbildern gehören beide `root`, nicht `www-data`. Laufen die
-Befehle als `www-data`, meldet composer eine Verweigerung — und `build` meldet
-`[OK]` und schreibt trotzdem nichts, was schwerer zu bemerken ist. Prüfen:
+Schritt 2 und 3 benötigen Schreibrecht auf `vendor/` und `artifacts/`; in
+gängigen Abbildern gehören beide `root`. Kontrolle:
 
 ```bash
-grep -l Alphabees /var/www/html/artifacts/*.php   # muss etwas finden
+grep -l Alphabees /var/www/html/artifacts/*.php    # muss einen Treffer liefern
 ```
 
-### Wer was macht
+### Schritt 2 — Installieren und aktivieren
 
-| Schritt | Wer | Wie oft |
-|---|---|---|
-| Dateien, `composer dump-autoload`, `cli/setup.php build` | jemand mit Server-Zugang (IT oder Hoster) | einmal, dann bei Updates |
-| Installieren + Aktivieren | ILIAS-Administrator, Weboberfläche | einmal |
-| Code einfügen, Agenten zuordnen | E-Learning-Team, Portal + Weboberfläche | laufend |
+**Administration → Plugins**. Beide Einträge zuerst *Installieren*, dann
+*Aktivieren*, in dieser Reihenfolge:
 
-ILIAS hat **keinen Marktplatz**: die Plugin-Verwaltung kann weder hochladen
-noch herunterladen. Die Liste auf docu.ilias.de ist ein Verzeichnis mit Links.
-Jedes Plugin — gelistet oder nicht — wird gleich eingespielt, seit ILIAS 9.
+1. `AlphabeesTutor`
+2. `AlphabeesTutorSync`
 
-Danach in ILIAS: **Administration → Plugins**. Dort stehen beide Einträge;
-erst *Installieren*, dann *Aktivieren* — zuerst `AlphabeesTutor`, denn ihm
-gehören die Tabellen und `AlphabeesTutorSync` verweigert die Aktivierung ohne
-ihn.
+`php cli/setup.php update --legacy-plugin=<Name>` ist für spätere
+Aktualisierungen vorgesehen. Für die Erstinstallation genügt es nicht: ILIAS
+aktiviert darüber nur, was bereits installiert ist, und einen CLI-Unterbefehl
+zum Installieren eines einzelnen Plugins gibt es nicht.
 
-> `php cli/setup.php update --legacy-plugin=<Name>` ist für **spätere**
-> Aktualisierungen. Für die Erstinstallation reicht es nicht: ILIAS aktiviert
-> darüber nur, was bereits installiert ist, und einen CLI-Unterbefehl zum
-> Installieren eines einzelnen Plugins gibt es nicht.
+### Schritt 3 — Verbinden
 
-Zum Schluss **AlphabeesTutor → Konfigurieren**, den Code aus dem
-AlphaLearn-Portal (Integrationen → ILIAS) einfügen, verbinden.
+**AlphabeesTutor → Konfigurieren**. Den Verbindungscode aus dem
+AlphaLearn-Portal (Integrationen → ILIAS) einfügen und speichern.
 
-Die vier Cron-Jobs erscheinen unter **Administration → Cron-Jobs** und sind
-vorab aktiv. Der Job „Zuordnungen holen" ist der wichtige: ohne ihn bleibt die
-lokale Tabelle leer und es erscheint in keinem Kurs etwas.
+Eine bereits verbundene Installation nimmt keinen weiteren Code an; die
+Konfigurationsseite zeigt dann *Jetzt aktualisieren* und *Trennen*. Für eine
+Verbindung zu einem anderen Konto ist zuvor zu trennen.
 
-### Aktualisieren — der Schritt, den man nicht auslassen darf
+### Schritt 4 — Cron
 
-Neue Dateien allein schalten das Plugin **ab**. `ilPluginInfo::isActive()`
-verlangt `!isUpdateRequired()`, und das ist wahr, sobald die eingespielte
-Version von der abweicht, die ILIAS zuletzt aktualisiert hat. Dann liefert
-`getActivePluginsInSlot('uihk')` nichts mehr und `getPluginJobs()` ebenso: der
-Tutor verschwindet aus allen Kursen und die Hintergrundläufe schweigen —
-ohne Fehlermeldung, weil aus ILIAS' Sicht alles in Ordnung ist.
+ILIAS startet seine Cron-Jobs nicht selbst, sondern wartet auf einen Aufruf von
+außen. Ohne ihn bleibt die lokale Zuordnungstabelle leer und in keinem Kurs
+erscheint ein Agent.
 
-Die Reihenfolge ist deshalb:
+```
+*/5 * * * * php /var/www/html/cli/cron.php run-jobs <admin> <client>
+```
+
+`run-jobs` benötigt kein Passwort; `<admin>` ist ein ILIAS-Benutzer mit
+Administratorrechten (üblicherweise `root`), `<client>` die Mandantenkennung
+(üblicherweise `default`). ILIAS entscheidet bei jedem Aufruf, welcher Job nach
+seinem Rhythmus fällig ist.
+
+Die vier Jobs erscheinen unter **Administration → Cron-Jobs** und sind vorab
+aktiviert. Die Konfigurationsseite des Plugins meldet, wenn seit mehr als zwei
+Stunden kein Lauf stattgefunden hat.
+
+## Aktualisierung
+
+Neue Dateien allein deaktivieren das Plugin. `ilPluginInfo::isActive()` setzt
+`!isUpdateRequired()` voraus, und das trifft zu, sobald die eingespielte
+Version von der zuletzt aktualisierten abweicht. In diesem Zustand liefern
+`getActivePluginsInSlot('uihk')` und `getPluginJobs()` nichts: das Widget
+erscheint nicht mehr, die Hintergrundläufe stehen, und ILIAS meldet keinen
+Fehler.
+
+Reihenfolge:
 
 ```bash
-./install.sh /var/www/html            # Dateien, composer, build
+./install.sh /var/www/html                                  # Dateien, composer, build
 cd /var/www/html
 php cli/setup.php update --legacy-plugin=AlphabeesTutor
 php cli/setup.php update --legacy-plugin=AlphabeesTutorSync
 ```
 
-Oder in der Oberfläche: **Administration → Plugins → Aktualisieren** an beiden
-Einträgen. Danach steht dort bei beiden dieselbe Version unter „installiert"
-und „verfügbar".
+Alternativ in der Oberfläche: **Administration → Plugins → Aktualisieren** an
+beiden Einträgen. Danach stimmen dort installierte und verfügbare Version
+überein.
 
-> Solange nur die Dateien getauscht und `build` noch nicht gelaufen ist,
-> arbeitet das Plugin weiter — ILIAS vergleicht gegen das Artefakt, nicht
-> gegen `plugin.php`. Es meldet dann aber die **alte** Version ans Portal,
-> während der neue Code läuft. Genau deshalb sortiert das Backend Fähigkeiten
-> nie nach dem Versionsstring, sondern nach `ilias_plugin_version_code` —
-> der ist eine Konstante im Code und wandert sofort mit.
+Wird `build` nach dem Dateitausch nicht ausgeführt, arbeitet das Plugin weiter:
+ILIAS vergleicht gegen das Artefakt, nicht gegen `plugin.php`. Es meldet dann
+die vorherige Version an das Portal, während der neue Code läuft. Das Backend
+sortiert Fähigkeiten deshalb nach `ilias_plugin_version_code` — einer
+Konstanten im Code — und nicht nach dem Versionsstring.
 
-## Wie es arbeitet
+## Arbeitsweise
 
 ```
 Portal                        ILIAS
   │                             │
-  │◀── Zuordnungen holen ───────┤  alle 15 min   (PlacementPullJob)
+  │◀── Zuordnungen abrufen ─────┤  alle 15 min   PlacementPullJob
   │                             │
-  │◀── Kurse, Mitglieder ───────┤  alle 6 h      (StructurePushJob)
+  │◀── Kurse, Mitglieder ───────┤  alle 6 h      StructurePushJob
   │                             │
-  │◀── Kursdateien ─────────────┤  alle 12 h     (ContentPushJob)
+  │◀── Kursdateien ─────────────┤  alle 12 h     ContentPushJob
   │                             │
-  │◀── Lebenszeichen, Reste ────┤  alle 5 min    (QueueDrainJob)
-  │                             │
-  │        (nie im Seitenaufbau)│
+  │◀── Lebenszeichen, Reste ────┤  alle 5 min    QueueDrainJob
 ```
 
-Der Seitenaufbau liest ausschließlich lokal: ein Primärschlüssel-Treffer auf
-`ui_uihk_alphabees_plc` und ein im Session-Cache gehaltener Baumlauf von der
-aktuellen `ref_id` zum umgebenden Kurs. Ist die Tabelle leer oder älter als drei
-Stunden, erscheint nichts. Eine ILIAS-Seite darf nie auf unsere Erreichbarkeit
-warten.
+Der Seitenaufbau liest ausschließlich lokal: einen Primärschlüssel-Treffer auf
+`ui_uihk_alphabees_plc` und einen im Session-Cache gehaltenen Baumlauf von der
+aktuellen `ref_id` zum umgebenden Kurs. Ist die Tabelle leer, erscheint nichts.
+Der Seitenaufbau stellt zu keinem Zeitpunkt eine Anfrage an das Backend.
+
+Der `uihk`-Hook ergänzt ausschließlich (`APPEND`) und ausschließlich beim Teil
+`template_show` der Hauptvorlage. ILIAS ruft denselben Hook auch für
+Brotkrumenleiste, rechte Spalte, Kompetenzansicht und Dashboard-Teile auf;
+diese Aufrufe bleiben unberührt.
 
 ## Identität
 
-Die lernende Person reist als `{usr_id}@{installations-uuid}.ilias` — genau die
-Kennung, die ILIAS selbst einem xAPI-Werkzeug auf der Datenschutzstufe „ILIAS
-user ID" gibt (`ilCmiXapiUser::getIdent`). Wer über LTI kommt und wer über
-dieses Plugin kommt, ist für das Backend dieselbe Person, ohne
-Zuordnungstabelle dazwischen.
+Die lernende Person wird als `{usr_id}@{installations-uuid}.ilias` übergeben —
+dieselbe Kennung, die ILIAS einem xAPI-Werkzeug auf der Datenschutzstufe
+„ILIAS user ID" ausstellt (`ilCmiXapiUser::getIdent`). Eine Person über LTI und
+dieselbe Person über dieses Plugin sind für das Backend identisch; eine
+Zuordnungstabelle entfällt.
 
-Die UUID wird zur Laufzeit gelesen, nie fest verdrahtet: sie entsteht je
-Installation.
+Die Installations-UUID wird zur Laufzeit gelesen. Sie entsteht je Installation
+und ist nirgends fest hinterlegt.
 
-## Was hier nicht entschieden wird
+## Aufgabenteilung mit dem Backend
 
-- **Rollen.** Wir senden die ILIAS-Rollennamen (`il_crs_member_92`), übersetzt
-  wird im Backend. Zwei Kopien der Zuordnung — die zweite altert.
-- **Lernstands-Status.** Wir senden die rohe `ilLPStatus`-Zahl, aus demselben
-  Grund.
-- **Klarnamen.** Wir senden sie mit, gespeichert werden sie nur, wenn der
-  Mandant es im Portal erlaubt hat. Die `usr_id` allein genügt, um Lernstand
-  und Ergebnisse einer Person zuzuordnen.
+Das Plugin überträgt Rohwerte und interpretiert sie nicht:
+
+- **Rollen** werden als ILIAS-Rollenname übertragen (`il_crs_member_92`); die
+  Übersetzung erfolgt im Backend.
+- **Lernstand** wird als `ilLPStatus`-Zahl übertragen, aus demselben Grund.
+- **Klarnamen** werden übertragen, aber nur gespeichert, wenn der Mandant es im
+  Portal erlaubt hat. Zur Zuordnung von Lernstand und Ergebnissen genügt die
+  `usr_id`.
+
+Zwei Interpretationen derselben Daten würden auseinanderlaufen, sobald eine von
+beiden altert.
 
 ## Sicherheit
 
-Jeder Aufruf ist Ed25519-signiert, mit Zeitfenster (5 min) und
-Einmal-Kennzahl gegen Wiedereinspielung. Der private Schlüssel entsteht beim
-Verbinden in ILIAS und verlässt die Installation nie; nach draußen geht nur der
-öffentliche Teil.
+Jeder Aufruf ist Ed25519-signiert und trägt Zeitstempel und Einmal-Kennzahl.
+Das Backend akzeptiert eine Abweichung von 300 Sekunden und weist eine bereits
+verwendete Kennzahl ab. Das Schlüsselpaar entsteht beim Verbinden in ILIAS; der
+private Teil verlässt die Installation nicht.
 
-Ausnahme ist der Verbindungsaufruf selbst — da kennt das Backend unseren
-Schlüssel ja noch nicht. Den Mandantenbezug trägt dort der Einmal-Code, der
-24 Stunden gilt und mit dem Aufruf verbraucht ist.
+Der Verbindungsaufruf selbst ist unsigniert — das Backend kennt den Schlüssel
+zu diesem Zeitpunkt noch nicht. Den Mandantenbezug stellt der Einmal-Code her:
+24 Stunden gültig, mit dem Aufruf verbraucht, in der Datenbank nur als Hash
+hinterlegt.
 
-Trennen leert die Zugangsdaten, **behält aber die Zuordnungen**. Wer
-versehentlich trennt oder sein ILIAS neu aufsetzt, verliert keine einzige
-Agent-Zuordnung.
+Trennen löscht die Zugangsdaten und behält die Zuordnungen. Eine erneute
+Verbindung stellt den vorherigen Stand wieder her.
 
-## Cron einrichten
-
-Ohne einen laufenden ILIAS-Cron holt das Plugin nie neue Zuordnungen. ILIAS
-startet seine Jobs nicht selbst — es wartet auf einen Aufruf von aussen:
-
-```
-*/5 * * * * php /var/www/html/cli/cron.php run-jobs root default
-```
-
-Kein Passwort nötig, `run-jobs <user> <client_id>` genügt. ILIAS entscheidet
-bei jedem Aufruf selbst, welcher Job nach seinem Rhythmus fällig ist.
-
-## Entwickeln
+## Entwicklung
 
 ```bash
-./build.sh                                    # Syntax + Versionen + ZIPs
+./build.sh                                     # Syntax, Versionsgleichheit, ZIPs
 find plugins -name '*.php' -exec php -l {} \;  # nur Syntax
 ```
 
+Der Codestil folgt `@PSR12`, wie ILIAS ihn in
+`scripts/PHP-CS-Fixer/code-format.php_cs` festlegt. Die CI prüft Syntax,
+Codestil und das Bauskript.
+
 Veröffentlichen: Version in **beiden** `plugin.php` anheben, Abschnitt im
 `CHANGELOG.md` ergänzen, dann `git tag v<version> && git push --tags`. Die
-Freigabe-Aktion baut die ZIPs, prüft dass Tag und Plugin-Version
-übereinstimmen, und hängt sie an das Release. `build.sh` bricht ab, wenn die
-beiden Plugins verschiedene Versionen tragen oder die Version nicht im
-CHANGELOG steht.
+Release-Aktion baut die Pakete, prüft die Übereinstimmung von Tag und
+Plugin-Version und hängt sie an das Release. `build.sh` bricht ab, wenn die
+Plugins verschiedene Versionen tragen oder die Version im Changelog fehlt.
 
-Die beiden Slot-Klassen (`ilAlphabeesTutorUIHookGUI`,
-`ilAlphabeesTutorSyncPlugin`) sind bewusst dünn. Beide Steckplätze sind in
-ILIAS 11 als veraltet markiert; wenn sie verschwinden, ist nur der Adapter neu
-zu schreiben, nicht die Logik darunter.
+Die beiden Steckplatz-Klassen (`ilAlphabeesTutorUIHookGUI`,
+`ilAlphabeesTutorSyncPlugin`) sind bewusst schmal gehalten. Beide Steckplätze
+sind in ILIAS 11 als veraltet gekennzeichnet; entfallen sie, ist der Adapter
+neu zu schreiben, nicht die darunterliegende Logik.
+
+## Lizenz
+
+GPL-3.0, entsprechend dem ILIAS-Kern. Siehe [LICENSE](LICENSE).
 
 ---
 
